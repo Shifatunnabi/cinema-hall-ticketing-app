@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Play, Calendar, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Play, Calendar, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const movies = [
   {
@@ -14,7 +14,8 @@ const movies = [
     genre: "Sci-Fi, Adventure",
     duration: "3h 12m",
     rating: "PG-13",
-    poster: "/placeholder.svg?height=600&width=400",
+    poster:
+      "https://m.media-amazon.com/images/M/MV5BMDI2MThlNzAtYjU0MS00ZDYyLWEyOWItMjQzMGNhY2RkNDdjXkEyXkFqcGc@._V1_.jpg",
   },
   {
     id: 2,
@@ -22,7 +23,8 @@ const movies = [
     genre: "Action, Drama",
     duration: "2h 11m",
     rating: "PG-13",
-    poster: "/placeholder.svg?height=600&width=400",
+    poster:
+      "https://images.justwatch.com/poster/318087954/s718/toofan-2024.jpg",
   },
   {
     id: 3,
@@ -30,24 +32,25 @@ const movies = [
     genre: "Action, Adventure",
     duration: "2h 41m",
     rating: "PG-13",
-    poster: "/placeholder.svg?height=600&width=400",
+    poster:
+      "https://m.media-amazon.com/images/M/MV5BZmMwZTk1MDctMjM1My00YTA5LTg0YmYtZWE5Y2Q4N2JhZGQ1XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
   },
-]
+];
 
 export default function HeroSection() {
-  const router = useRouter()
-  const [currentSlide, setCurrentSlide] = useState(0)
-  const [dates, setDates] = useState<any[]>([])
-  const [showCalendar, setShowCalendar] = useState(false)
-  const [calendarDate, setCalendarDate] = useState(new Date())
+  const router = useRouter();
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [dates, setDates] = useState<any[]>([]);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calendarDate, setCalendarDate] = useState(new Date());
 
   useEffect(() => {
     // Generate dates (3 before today, today, 3 after today)
-    const today = new Date()
-    const dateArray = []
+    const today = new Date();
+    const dateArray = [];
     for (let i = -3; i <= 3; i++) {
-      const date = new Date(today)
-      date.setDate(today.getDate() + i)
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
       dateArray.push({
         date: date,
         day: date.getDate().toString().padStart(2, "0"),
@@ -59,59 +62,59 @@ export default function HeroSection() {
         }),
         isPast: date < today,
         isToday: date.toDateString() === today.toDateString(),
-      })
+      });
     }
-    setDates(dateArray)
-  }, [])
+    setDates(dateArray);
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % movies.length)
-    }, 5000)
-    return () => clearInterval(timer)
-  }, [])
+      setCurrentSlide((prev) => (prev + 1) % movies.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   const handleDateClick = (dateInfo: any) => {
-    if (dateInfo.isPast) return // Don't allow past dates
+    if (dateInfo.isPast) return; // Don't allow past dates
 
     // Navigate to get-ticket page with selected date
-    const searchParams = new URLSearchParams()
-    searchParams.set("selectedDate", dateInfo.fullDate)
-    router.push(`/get-ticket?${searchParams.toString()}`)
-  }
+    const searchParams = new URLSearchParams();
+    searchParams.set("selectedDate", dateInfo.fullDate);
+    router.push(`/get-ticket?${searchParams.toString()}`);
+  };
 
   const handleCalendarDateSelect = (date: Date) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-    if (date < today) return // Don't allow past dates
+    if (date < today) return; // Don't allow past dates
 
     const selectedDateString = date.toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "2-digit",
-    })
+    });
 
-    setShowCalendar(false)
+    setShowCalendar(false);
 
     // Navigate to get-ticket page with selected date
-    const searchParams = new URLSearchParams()
-    searchParams.set("selectedDate", selectedDateString)
-    router.push(`/get-ticket?${searchParams.toString()}`)
-  }
+    const searchParams = new URLSearchParams();
+    searchParams.set("selectedDate", selectedDateString);
+    router.push(`/get-ticket?${searchParams.toString()}`);
+  };
 
   const renderCalendar = () => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const year = calendarDate.getFullYear()
-    const month = calendarDate.getMonth()
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
 
-    const firstDay = new Date(year, month, 1)
-    const lastDay = new Date(year, month + 1, 0)
-    const daysInMonth = lastDay.getDate()
-    const startingDayOfWeek = firstDay.getDay()
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
 
-    const days = []
+    const days = [];
     const monthNames = [
       "January",
       "February",
@@ -125,19 +128,19 @@ export default function HeroSection() {
       "October",
       "November",
       "December",
-    ]
+    ];
 
     // Empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(<div key={`empty-${i}`} className="p-2"></div>)
+      days.push(<div key={`empty-${i}`} className="p-2"></div>);
     }
 
     // Days of the month
     for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(year, month, day)
-      const isToday = date.toDateString() === today.toDateString()
-      const isPast = date < today
-      const isDisabled = isPast
+      const date = new Date(year, month, day);
+      const isToday = date.toDateString() === today.toDateString();
+      const isPast = date < today;
+      const isDisabled = isPast;
 
       days.push(
         <button
@@ -148,13 +151,13 @@ export default function HeroSection() {
             isToday
               ? "bg-[#A2785C] text-[#DCD7C9] font-bold"
               : isDisabled
-                ? "text-[#3F4F44]/30 cursor-not-allowed"
-                : "hover:bg-[#A2785C]/20 text-[#2C3930]"
+              ? "text-[#3F4F44]/30 cursor-not-allowed"
+              : "hover:bg-[#A2785C]/20 text-[#2C3930]"
           }`}
         >
           {day}
-        </button>,
-      )
+        </button>
+      );
     }
 
     return (
@@ -179,7 +182,10 @@ export default function HeroSection() {
 
         <div className="grid grid-cols-7 gap-1 mb-2">
           {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-            <div key={day} className="p-2 text-xs font-medium text-[#3F4F44] text-center">
+            <div
+              key={day}
+              className="p-2 text-xs font-medium text-[#3F4F44] text-center"
+            >
               {day}
             </div>
           ))}
@@ -187,8 +193,8 @@ export default function HeroSection() {
 
         <div className="grid grid-cols-7 gap-1">{days}</div>
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <section className="relative overflow-hidden lg:h-screen">
@@ -221,24 +227,24 @@ export default function HeroSection() {
         <div className="absolute left-4 md:left-8 top-20 z-20 hidden lg:block">
           <div className="flex flex-col">
             {dates.map((dateInfo, index) => {
-              const distanceFromToday = Math.abs(index - 3) // 3 is the middle index (today)
+              const distanceFromToday = Math.abs(index - 3); // 3 is the middle index (today)
 
               // Size and opacity based on distance from today
-              let sizeClass = "text-sm"
-              let opacity = "opacity-40"
+              let sizeClass = "text-sm";
+              let opacity = "opacity-40";
 
               if (dateInfo.isToday) {
-                sizeClass = "text-3xl"
-                opacity = "opacity-100"
+                sizeClass = "text-3xl";
+                opacity = "opacity-100";
               } else if (distanceFromToday === 1) {
-                sizeClass = "text-xl"
-                opacity = "opacity-70"
+                sizeClass = "text-xl";
+                opacity = "opacity-70";
               } else if (distanceFromToday === 2) {
-                sizeClass = "text-lg"
-                opacity = "opacity-55"
+                sizeClass = "text-lg";
+                opacity = "opacity-55";
               } else {
-                sizeClass = "text-base"
-                opacity = "opacity-40"
+                sizeClass = "text-base";
+                opacity = "opacity-40";
               }
 
               return (
@@ -256,7 +262,7 @@ export default function HeroSection() {
                   <div className="font-bold">{dateInfo.day}</div>
                   <div className="text-xs mt-1">{dateInfo.month}</div>
                 </button>
-              )
+              );
             })}
 
             {/* Calendar Icon for More Dates */}
@@ -292,7 +298,8 @@ export default function HeroSection() {
             className="text-[#DCD7C9] text-xs lg:text-base mb-2 lg:mb-6 opacity-90"
             style={{ textShadow: "2px 2px 4px rgba(44, 57, 48, 0.8)" }}
           >
-            Duration: {movies[currentSlide].duration} • Rating: {movies[currentSlide].rating}
+            Duration: {movies[currentSlide].duration} • Rating:{" "}
+            {movies[currentSlide].rating}
           </p>
 
           <div className="flex space-x-2 lg:space-x-4">
@@ -327,7 +334,10 @@ export default function HeroSection() {
             className="text-[#A2785C] text-sm lg:text-xl font-bold border-b-2 border-[#A2785C] inline-block"
             style={{ textShadow: "2px 2px 4px rgba(44, 57, 48, 0.8)" }}
           >
-            {new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" })}
+            {new Date().toLocaleDateString("en-US", {
+              month: "long",
+              year: "numeric",
+            })}
           </p>
         </div>
 
@@ -360,5 +370,5 @@ export default function HeroSection() {
         </div>
       )}
     </section>
-  )
+  );
 }

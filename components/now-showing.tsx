@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useState, useRef, useEffect } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Play, Ticket } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Play, Ticket } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const nowShowingMovies = [
   {
@@ -13,7 +13,8 @@ const nowShowingMovies = [
     genre: "Sci-Fi, Adventure",
     duration: "3h 12m",
     rating: "PG-13",
-    poster: "/placeholder.svg?height=400&width=300",
+    poster:
+      "https://m.media-amazon.com/images/M/MV5BMDI2MThlNzAtYjU0MS00ZDYyLWEyOWItMjQzMGNhY2RkNDdjXkEyXkFqcGc@._V1_.jpg",
     trailer: "https://www.youtube.com/embed/d9MyW72ELq0",
   },
   {
@@ -22,7 +23,8 @@ const nowShowingMovies = [
     genre: "Action, Drama",
     duration: "2h 11m",
     rating: "PG-13",
-    poster: "/placeholder.svg?height=400&width=300",
+    poster:
+      "https://images.justwatch.com/poster/318087954/s718/toofan-2024.jpg",
     trailer: "https://www.youtube.com/embed/qSqVVswa420",
   },
   {
@@ -31,7 +33,8 @@ const nowShowingMovies = [
     genre: "Action, Adventure",
     duration: "2h 41m",
     rating: "PG-13",
-    poster: "/placeholder.svg?height=400&width=300",
+    poster:
+      "https://m.media-amazon.com/images/M/MV5BZmMwZTk1MDctMjM1My00YTA5LTg0YmYtZWE5Y2Q4N2JhZGQ1XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
     trailer: "https://www.youtube.com/embed/_Z3QKkl1WyM",
   },
   {
@@ -40,101 +43,103 @@ const nowShowingMovies = [
     genre: "Action, Crime",
     duration: "2h 56m",
     rating: "PG-13",
-    poster: "/placeholder.svg?height=400&width=300",
+    poster: "https://i.ibb.co.com/Lhb8TTHr/Screenshot-2025-08-06-180557.png",
     trailer: "https://www.youtube.com/embed/mqqft2x_Aa4",
   },
-]
+];
 
 export default function NowShowing() {
-  const [showTrailer, setShowTrailer] = useState(false)
-  const [selectedTrailer, setSelectedTrailer] = useState("")
-  const [clickedCards, setClickedCards] = useState<Set<number>>(new Set())
-  const [currentMobileIndex, setCurrentMobileIndex] = useState(0)
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [isCardActive, setIsCardActive] = useState(false)
+  const [showTrailer, setShowTrailer] = useState(false);
+  const [selectedTrailer, setSelectedTrailer] = useState("");
+  const [clickedCards, setClickedCards] = useState<Set<number>>(new Set());
+  const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [isCardActive, setIsCardActive] = useState(false);
 
   const openTrailer = (trailerUrl: string) => {
-    setSelectedTrailer(trailerUrl)
-    setShowTrailer(true)
-  }
+    setSelectedTrailer(trailerUrl);
+    setShowTrailer(true);
+  };
 
   const closeTrailer = () => {
-    setShowTrailer(false)
-    setSelectedTrailer("")
-  }
+    setShowTrailer(false);
+    setSelectedTrailer("");
+  };
 
   const handleCardClick = (movieId: number) => {
     // Only handle click behavior on mobile/tablet
     if (window.innerWidth < 1024) {
-      const newClickedCards = new Set(clickedCards)
+      const newClickedCards = new Set(clickedCards);
       if (clickedCards.has(movieId)) {
-        newClickedCards.delete(movieId)
-        setIsCardActive(false) // No cards are active
+        newClickedCards.delete(movieId);
+        setIsCardActive(false); // No cards are active
       } else {
-        newClickedCards.add(movieId)
-        setIsCardActive(true) // A card is now active
+        newClickedCards.add(movieId);
+        setIsCardActive(true); // A card is now active
       }
-      setClickedCards(newClickedCards)
+      setClickedCards(newClickedCards);
     }
-  }
+  };
 
   const scrollToSlide = (index: number) => {
     if (scrollContainerRef.current) {
-      const container = scrollContainerRef.current
-      const slideWidth = container.offsetWidth
+      const container = scrollContainerRef.current;
+      const slideWidth = container.offsetWidth;
       container.scrollTo({
         left: slideWidth * index,
         behavior: "smooth",
-      })
-      setCurrentMobileIndex(index)
+      });
+      setCurrentMobileIndex(index);
     }
-  }
+  };
 
   // Auto-scroll functionality
   useEffect(() => {
     const autoScroll = setInterval(() => {
       if (window.innerWidth < 1024 && !isCardActive) {
         // Only on mobile and if no card is active
-        const nextIndex = (currentMobileIndex + 1) % nowShowingMovies.length
-        scrollToSlide(nextIndex)
+        const nextIndex = (currentMobileIndex + 1) % nowShowingMovies.length;
+        scrollToSlide(nextIndex);
       }
-    }, 4000) // Auto-scroll every 4 seconds
+    }, 4000); // Auto-scroll every 4 seconds
 
-    return () => clearInterval(autoScroll)
-  }, [currentMobileIndex, isCardActive])
+    return () => clearInterval(autoScroll);
+  }, [currentMobileIndex, isCardActive]);
 
   // Handle scroll events to update current index
   useEffect(() => {
-    const container = scrollContainerRef.current
-    if (!container) return
+    const container = scrollContainerRef.current;
+    if (!container) return;
 
     const handleScroll = () => {
-      const scrollLeft = container.scrollLeft
-      const slideWidth = container.offsetWidth
-      const newIndex = Math.round(scrollLeft / slideWidth)
-      setCurrentMobileIndex(newIndex)
-    }
+      const scrollLeft = container.scrollLeft;
+      const slideWidth = container.offsetWidth;
+      const newIndex = Math.round(scrollLeft / slideWidth);
+      setCurrentMobileIndex(newIndex);
+    };
 
-    container.addEventListener("scroll", handleScroll)
-    return () => container.removeEventListener("scroll", handleScroll)
-  }, [])
+    container.addEventListener("scroll", handleScroll);
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, []);
 
   const handleMouseEnter = () => {
     if (window.innerWidth >= 1024) {
-      setIsCardActive(true)
+      setIsCardActive(true);
     }
-  }
+  };
 
   const handleMouseLeave = () => {
     if (window.innerWidth >= 1024) {
-      setIsCardActive(false)
+      setIsCardActive(false);
     }
-  }
+  };
 
   return (
     <section className="py-16 px-4 md:px-8 relative">
       <div className="max-w-7xl mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-[#2C3930] mb-8 text-center">Now Showing</h2>
+        <h2 className="text-3xl md:text-4xl font-bold text-[#2C3930] mb-8 text-center">
+          Now Showing
+        </h2>
 
         {/* Desktop: Carousel with arrows, Mobile: Full width grid */}
         <div className="lg:hidden">
@@ -156,8 +161,8 @@ export default function NowShowing() {
                         src={movie.poster || "/placeholder.svg"}
                         alt={movie.title}
                         width={300}
-                        height={400}
-                        className={`w-full h-80 object-cover transition-all duration-300 ${
+                        height={600}
+                        className={`w-full h-[32rem] object-cover transition-all duration-300 ${
                           clickedCards.has(movie.id) ? "blur-sm" : ""
                         }`}
                       />
@@ -165,16 +170,23 @@ export default function NowShowing() {
                       {/* Click Overlay */}
                       <div
                         className={`absolute inset-0 bg-[#2C3930]/90 transition-opacity duration-300 flex flex-col justify-center items-center p-6 ${
-                          clickedCards.has(movie.id) ? "opacity-100" : "opacity-0"
+                          clickedCards.has(movie.id)
+                            ? "opacity-100"
+                            : "opacity-0"
                         }`}
                       >
-                        <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">{movie.title}</h3>
+                        <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
+                          {movie.title}
+                        </h3>
                         <p className="text-[#A2785C] text-sm mb-4 text-center">
                           {movie.genre} • {movie.duration}
                         </p>
                         <div className="flex space-x-3">
                           <Link href="/get-ticket">
-                            <Button size="sm" className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]">
+                            <Button
+                              size="sm"
+                              className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
+                            >
                               <Ticket size={16} className="mr-1" />
                               Buy Ticket
                             </Button>
@@ -184,8 +196,8 @@ export default function NowShowing() {
                             variant="outline"
                             className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent"
                             onClick={(e) => {
-                              e.stopPropagation()
-                              openTrailer(movie.trailer)
+                              e.stopPropagation();
+                              openTrailer(movie.trailer);
                             }}
                           >
                             <Play size={16} className="mr-1" />
@@ -206,7 +218,9 @@ export default function NowShowing() {
                   key={index}
                   onClick={() => scrollToSlide(index)}
                   className={`w-2 h-2 rounded-full transition-colors ${
-                    currentMobileIndex === index ? "bg-[#A2785C]" : "bg-[#3F4F44]/50"
+                    currentMobileIndex === index
+                      ? "bg-[#A2785C]"
+                      : "bg-[#3F4F44]/50"
                   }`}
                 />
               ))}
@@ -219,7 +233,13 @@ export default function NowShowing() {
           <div className="relative">
             {/* Navigation Buttons */}
             <button className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#2C3930] hover:bg-[#3F4F44] text-[#DCD7C9] p-3 rounded-full shadow-lg transition-colors">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path
                   d="M15 18L9 12L15 6"
                   stroke="currentColor"
@@ -231,7 +251,13 @@ export default function NowShowing() {
             </button>
 
             <button className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#2C3930] hover:bg-[#3F4F44] text-[#DCD7C9] p-3 rounded-full shadow-lg transition-colors">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
                 <path
                   d="M9 18L15 12L9 6"
                   stroke="currentColor"
@@ -259,18 +285,23 @@ export default function NowShowing() {
                           alt={movie.title}
                           width={300}
                           height={400}
-                          className="w-full h-80 object-cover transition-all duration-300 group-hover:blur-sm"
+                          className="w-full h-[32rem] object-cover transition-all duration-300 group-hover:blur-sm"
                         />
 
                         {/* Hover Overlay */}
                         <div className="absolute inset-0 bg-[#2C3930]/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-6">
-                          <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">{movie.title}</h3>
+                          <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
+                            {movie.title}
+                          </h3>
                           <p className="text-[#A2785C] text-sm mb-4 text-center">
                             {movie.genre} • {movie.duration}
                           </p>
                           <div className="flex space-x-3">
                             <Link href="/get-ticket">
-                              <Button size="sm" className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]">
+                              <Button
+                                size="sm"
+                                className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
+                              >
                                 <Ticket size={16} className="mr-1" />
                                 Buy Ticket
                               </Button>
@@ -307,11 +338,16 @@ export default function NowShowing() {
               ×
             </button>
             <div className="aspect-video">
-              <iframe src={selectedTrailer} className="w-full h-full" allowFullScreen title="Movie Trailer" />
+              <iframe
+                src={selectedTrailer}
+                className="w-full h-full"
+                allowFullScreen
+                title="Movie Trailer"
+              />
             </div>
           </div>
         </div>
       )}
     </section>
-  )
+  );
 }

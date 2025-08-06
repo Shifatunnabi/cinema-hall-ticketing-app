@@ -1,6 +1,6 @@
-import Image from "next/image"
-import Link from "next/link"
-import { Calendar, ArrowRight } from "lucide-react"
+import Image from "next/image";
+import Link from "next/link";
+import { Calendar, ArrowRight } from "lucide-react";
 
 const newsItems = [
   {
@@ -8,7 +8,7 @@ const newsItems = [
     title: "New IMAX Screen Installation Complete",
     excerpt:
       "Experience movies like never before with our brand new IMAX screen featuring enhanced sound and visual quality.",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "https://i.ibb.co.com/Lhb8TTHr/Screenshot-2025-08-06-180557.png",
     date: "July 25, 2024",
     category: "Cinema Updates",
   },
@@ -17,26 +17,29 @@ const newsItems = [
     title: "Special Midnight Screening Events",
     excerpt:
       "Join us for exclusive midnight screenings of the latest blockbusters with special pricing and refreshments.",
-    image: "/placeholder.svg?height=200&width=300",
+    image: "https://i.ibb.co.com/Lhb8TTHr/Screenshot-2025-08-06-180557.png",
     date: "July 22, 2024",
     category: "Events",
   },
   {
     id: 3,
     title: "Student Discount Program Launched",
-    excerpt: "Students can now enjoy 25% off on all movie tickets by presenting their valid student ID cards.",
-    image: "/placeholder.svg?height=200&width=300",
+    excerpt:
+      "Students can now enjoy 25% off on all movie tickets by presenting their valid student ID cards.",
+    image: "https://i.ibb.co.com/Lhb8TTHr/Screenshot-2025-08-06-180557.png",
     date: "July 20, 2024",
     category: "Offers",
   },
-]
+];
 
 export default function NewsSection() {
   return (
     <section className="py-16 px-4 md:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#2C3930]">Latest News</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#2C3930]">
+            Latest News
+          </h2>
           <Link
             href="/news"
             className="text-[#A2785C] hover:text-[#2C3930] font-semibold flex items-center transition-colors"
@@ -76,7 +79,9 @@ export default function NewsSection() {
                   <Link href={`/news/${item.id}`}>{item.title}</Link>
                 </h3>
 
-                <p className="text-[#3F4F44] mb-4 line-clamp-3">{item.excerpt}</p>
+                <p className="text-[#3F4F44] mb-4 line-clamp-3">
+                  {item.excerpt}
+                </p>
 
                 <Link
                   href={`/news/${item.id}`}
@@ -91,5 +96,5 @@ export default function NewsSection() {
         </div>
       </div>
     </section>
-  )
+  );
 }
