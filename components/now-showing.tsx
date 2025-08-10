@@ -163,7 +163,7 @@ export default function NowShowing() {
                             {genreStr} {duration && `• ${duration}`}
                           </p>
                           <div className="flex space-x-3">
-                            <Link href="/get-ticket">
+                            <Link href={`/get-ticket?movieId=${id}`}>
                               <Button
                                 size="sm"
                                 className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
@@ -284,7 +284,7 @@ export default function NowShowing() {
                               {genreStr} {duration && `• ${duration}`}
                             </p>
                             <div className="flex space-x-3">
-                              <Link href="/get-ticket">
+                              <Link href={`/get-ticket?movieId=${id}`}>
                                 <Button
                                   size="sm"
                                   className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
