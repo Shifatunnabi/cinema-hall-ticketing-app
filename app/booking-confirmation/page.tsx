@@ -3,13 +3,17 @@
 import { useState, useEffect } from "react"
 import { CheckCircle, Download, Mail, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useSearchParams } from "next/navigation"
 
 export default function BookingConfirmationPage() {
+  const sp = useSearchParams()
+  const bookingId = sp.get("bookingId")
   const [isGeneratingTicket, setIsGeneratingTicket] = useState(true)
   const [ticketGenerated, setTicketGenerated] = useState(false)
+  const [booking, setBooking] = useState<any | null>(null)
 
   // Mock booking data - in real app, this would come from the booking process
-  const bookingDetails = {
+  const mock = {
     bookingId: "AC" + Math.random().toString(36).substr(2, 8).toUpperCase(),
     movieTitle: "Avatar: The Way of Water",
     showDate: "29 Jul, 2025",
@@ -24,14 +28,39 @@ export default function BookingConfirmationPage() {
   }
 
   useEffect(() => {
-    // Simulate ticket generation
-    const timer = setTimeout(() => {
-      setIsGeneratingTicket(false)
-      setTicketGenerated(true)
-    }, 3000)
+    const load = async () => {
+      try {
+        if (bookingId) {
+          const res = await fetch(`/api/bookings/${bookingId}`, { cache: "no-store" })
+          const data = await res.json()
+          if (res.ok) {
+            setBooking(data)
+          }
+        }
+      } catch {}
+      setTimeout(() => {
+        setIsGeneratingTicket(false)
+        setTicketGenerated(true)
+      }, 1200)
+    }
+    load()
+  }, [bookingId])
 
-    return () => clearTimeout(timer)
-  }, [])
+  const details = booking
+    ? {
+        bookingId: booking.ticketNumber || booking._id,
+        movieTitle: booking.movieTitle,
+        showDate: booking.showDate,
+        showTime: booking.showTime,
+        hallName: "Ananda Cinema Hall",
+        seatType: booking.seatType,
+        quantity: booking.quantity,
+        totalAmount: booking.totalAmount,
+        customerName: booking.customerName,
+        customerMobile: booking.customerMobile,
+        customerEmail: booking.customerEmail,
+      }
+    : mock
 
   const handleDownloadTicket = () => {
     // In real implementation, this would generate and download a PDF
@@ -64,7 +93,7 @@ export default function BookingConfirmationPage() {
           <h1 className="text-4xl font-bold text-[#2C3930] mb-2">Booking Confirmed!</h1>
           <p className="text-[#3F4F44] text-lg">
             Your movie ticket has been successfully booked. Booking ID:{" "}
-            <span className="font-bold text-[#A2785C]">{bookingDetails.bookingId}</span>
+            <span className="font-bold text-[#A2785C]">{details.bookingId}</span>
           </p>
         </div>
 
@@ -79,7 +108,7 @@ export default function BookingConfirmationPage() {
               </div>
               <div className="text-right">
                 <p className="text-sm opacity-80">Booking ID</p>
-                <p className="text-xl font-bold">{bookingDetails.bookingId}</p>
+                <p className="text-xl font-bold">{details.bookingId}</p>
               </div>
             </div>
           </div>
@@ -89,27 +118,27 @@ export default function BookingConfirmationPage() {
             <div className="grid md:grid-cols-2 gap-8">
               {/* Movie Details */}
               <div>
-                <h3 className="text-2xl font-bold text-[#2C3930] mb-4">{bookingDetails.movieTitle}</h3>
+                <h3 className="text-2xl font-bold text-[#2C3930] mb-4">{details.movieTitle}</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
                     <span className="text-[#3F4F44]">Show Date:</span>
-                    <span className="font-semibold text-[#2C3930]">{bookingDetails.showDate}</span>
+                    <span className="font-semibold text-[#2C3930]">{details.showDate}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#3F4F44]">Show Time:</span>
-                    <span className="font-semibold text-[#2C3930]">{bookingDetails.showTime}</span>
+                    <span className="font-semibold text-[#2C3930]">{details.showTime}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#3F4F44]">Hall:</span>
-                    <span className="font-semibold text-[#2C3930]">{bookingDetails.hallName}</span>
+                    <span className="font-semibold text-[#2C3930]">{details.hallName}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#3F4F44]">Seat Type:</span>
-                    <span className="font-semibold text-[#2C3930]">{bookingDetails.seatType}</span>
+                    <span className="font-semibold text-[#2C3930]">{details.seatType}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-[#3F4F44]">Quantity:</span>
-                    <span className="font-semibold text-[#2C3930]">{bookingDetails.quantity} Tickets</span>
+                    <span className="font-semibold text-[#2C3930]">{details.quantity} Tickets</span>
                   </div>
                 </div>
               </div>
@@ -120,15 +149,15 @@ export default function BookingConfirmationPage() {
                 <div className="space-y-3">
                   <div>
                     <span className="text-[#3F4F44] block">Name:</span>
-                    <span className="font-semibold text-[#2C3930]">{bookingDetails.customerName}</span>
+                    <span className="font-semibold text-[#2C3930]">{details.customerName}</span>
                   </div>
                   <div>
                     <span className="text-[#3F4F44] block">Mobile:</span>
-                    <span className="font-semibold text-[#2C3930]">{bookingDetails.customerMobile}</span>
+                    <span className="font-semibold text-[#2C3930]">{details.customerMobile}</span>
                   </div>
                   <div>
                     <span className="text-[#3F4F44] block">Email:</span>
-                    <span className="font-semibold text-[#2C3930]">{bookingDetails.customerEmail}</span>
+                    <span className="font-semibold text-[#2C3930]">{details.customerEmail}</span>
                   </div>
                 </div>
 
@@ -136,7 +165,7 @@ export default function BookingConfirmationPage() {
                 <div className="mt-6 p-4 bg-[#A2785C]/10 rounded-lg">
                   <div className="flex justify-between items-center">
                     <span className="text-[#3F4F44] text-lg">Total Amount:</span>
-                    <span className="font-bold text-[#A2785C] text-2xl">৳{bookingDetails.totalAmount.toFixed(2)}</span>
+                    <span className="font-bold text-[#A2785C] text-2xl">৳{Number(details.totalAmount).toFixed(2)}</span>
                   </div>
                 </div>
               </div>
@@ -183,7 +212,7 @@ export default function BookingConfirmationPage() {
         {/* Additional Information */}
         <div className="mt-8 text-center">
           <p className="text-[#3F4F44] mb-2">
-            A copy of your ticket has been sent to <span className="font-semibold">{bookingDetails.customerEmail}</span>
+            A copy of your ticket has been sent to <span className="font-semibold">{details.customerEmail}</span>
           </p>
           <p className="text-sm text-[#3F4F44]">
             For any queries, please contact us at +880 1234-567890 or visit our help center.

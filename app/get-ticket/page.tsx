@@ -101,6 +101,7 @@ export default function GetTicketPage() {
   });
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Load and cache movies (status: now-showing)
   useEffect(() => {
@@ -261,8 +262,40 @@ export default function GetTicketPage() {
     ? selectedSeatType.price * ticketQuantity
     : 0;
 
-  const handlePurchase = () => {
-    window.location.href = "/booking-confirmation";
+  const handlePurchase = async () => {
+    if (!selectedMovie || !selectedDate || !selectedTime || !selectedSeatType) return;
+    if (!customerInfo.name || !customerInfo.mobile || !customerInfo.email) return;
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/payments/bkash/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          movieId: selectedMovie._id,
+          movieTitle: selectedMovie.title,
+          showDate: selectedDate,
+          showTime: selectedTime,
+          seatType: selectedSeatType.name,
+          quantity: ticketQuantity,
+          unitPrice: selectedSeatType.price,
+          totalAmount,
+          customerName: customerInfo.name,
+          customerMobile: customerInfo.mobile,
+          customerEmail: customerInfo.email,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Failed to initiate payment");
+      if (data.redirectURL) {
+        window.location.href = data.redirectURL;
+      } else {
+        throw new Error("Missing redirectURL from payment response");
+      }
+    } catch (e: any) {
+      alert(e?.message || "Failed to start payment");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCalendarDateSelect = (date: Date) => {
@@ -720,13 +753,14 @@ export default function GetTicketPage() {
                   <Button
                     onClick={handlePurchase}
                     disabled={
+                      isSubmitting ||
                       !customerInfo.name ||
                       !customerInfo.mobile ||
                       !customerInfo.email
                     }
                     className="w-full bg-[#A2785C] hover:bg-[#A2785C]/90 text-[#DCD7C9] py-3 text-lg font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Purchase Ticket
+                    {isSubmitting ? "Redirecting to bKash..." : "Purchase Ticket"}
                   </Button>
                 </div>
               )}
