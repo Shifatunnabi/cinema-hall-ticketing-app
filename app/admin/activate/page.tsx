@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function ActivatePage() {
+function ActivatePageContent() {
   const router = useRouter();
   const params = useSearchParams();
   const token = params.get("token") || "";
@@ -102,5 +102,13 @@ export default function ActivatePage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function ActivatePage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ActivatePageContent />
+    </Suspense>
   );
 }

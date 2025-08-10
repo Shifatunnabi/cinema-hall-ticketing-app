@@ -97,6 +97,9 @@ export default function Footer() {
           <p className="text-[#DCD7C9]/60 text-sm">
             © {new Date().getFullYear()} Ananda Cinema Hall. All rights reserved.
           </p>
+
+          <p className="text-[#DCD7C9]/60 text-lg mt-3">Developed By <span className="font-bold">MarcoPolo Digital</span>
+          </p>
         </div>
       </div>
     </footer>

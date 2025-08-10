@@ -280,17 +280,29 @@ export default function ContactPage() {
         <div className="mt-16">
           <h2 className="text-2xl font-bold text-[#2C3930] mb-8 text-center">Find Us on the Map</h2>
           <div className="bg-white rounded-2xl p-2 md:p-4 shadow-xl">
-            <div className="bg-[#3F4F44]/10 rounded-xl h-96 flex items-center justify-center">
-              <div className="text-center">
-                <MapPin size={48} className="text-[#A2785C] mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-[#2C3930] mb-2">Interactive Map</h3>
-                <p className="text-[#3F4F44]">
-                  123 Cinema Street, Entertainment District
-                  <br />
-                  Dhaka 1000, Bangladesh
-                </p>
-                <Button className="mt-4 bg-[#A2785C] hover:bg-[#A2785C]/90 text-[#DCD7C9]">Get Directions</Button>
-              </div>
+            <div className="rounded-xl overflow-hidden h-96">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3651.7343402191027!2d90.38749507479217!3d23.75685108852971!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755b8a3e1a15365%3A0x7178aa09edc9418b!2sAnanda%20Cinema%20Hall!5e0!3m2!1sen!2sbd!4v1754828796026!5m2!1sen!2sbd" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Ananda Cinema Hall Location"
+              />
+            </div>
+            <div className="text-center mt-4">
+              <p className="text-[#3F4F44] mb-4">
+                <MapPin className="inline mr-2" size={16} />
+                Ananda Cinema Hall, Dhaka, Bangladesh
+              </p>
+              <Button 
+                className="bg-[#A2785C] hover:bg-[#A2785C]/90 text-[#DCD7C9]"
+                onClick={() => window.open('https://www.google.com/maps/dir//Ananda+Cinema+Hall/@23.75685108852971,90.38749507479217', '_blank')}
+              >
+                Get Directions
+              </Button>
             </div>
           </div>
         </div>
