@@ -6,55 +6,33 @@ import Link from "next/link";
 import { Play, Ticket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const nowShowingMovies = [
-  {
-    id: 1,
-    title: "Avatar: The Way of Water",
-    genre: "Sci-Fi, Adventure",
-    duration: "3h 12m",
-    rating: "PG-13",
-    poster:
-      "https://m.media-amazon.com/images/M/MV5BMDI2MThlNzAtYjU0MS00ZDYyLWEyOWItMjQzMGNhY2RkNDdjXkEyXkFqcGc@._V1_.jpg",
-    trailer: "https://www.youtube.com/embed/d9MyW72ELq0",
-  },
-  {
-    id: 2,
-    title: "Top Gun: Maverick",
-    genre: "Action, Drama",
-    duration: "2h 11m",
-    rating: "PG-13",
-    poster:
-      "https://images.justwatch.com/poster/318087954/s718/toofan-2024.jpg",
-    trailer: "https://www.youtube.com/embed/qSqVVswa420",
-  },
-  {
-    id: 3,
-    title: "Black Panther: Wakanda Forever",
-    genre: "Action, Adventure",
-    duration: "2h 41m",
-    rating: "PG-13",
-    poster:
-      "https://m.media-amazon.com/images/M/MV5BZmMwZTk1MDctMjM1My00YTA5LTg0YmYtZWE5Y2Q4N2JhZGQ1XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-    trailer: "https://www.youtube.com/embed/_Z3QKkl1WyM",
-  },
-  {
-    id: 4,
-    title: "The Batman",
-    genre: "Action, Crime",
-    duration: "2h 56m",
-    rating: "PG-13",
-    poster: "https://i.ibb.co.com/Lhb8TTHr/Screenshot-2025-08-06-180557.png",
-    trailer: "https://www.youtube.com/embed/mqqft2x_Aa4",
-  },
-];
-
 export default function NowShowing() {
   const [showTrailer, setShowTrailer] = useState(false);
   const [selectedTrailer, setSelectedTrailer] = useState("");
-  const [clickedCards, setClickedCards] = useState<Set<number>>(new Set());
+  const [clickedCards, setClickedCards] = useState<Set<string>>(new Set());
   const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [isCardActive, setIsCardActive] = useState(false);
+  const [movies, setMovies] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/api/movies", { cache: "no-store" });
+        const all = await res.json();
+        if (res.ok) {
+          const filtered = (all || []).filter(
+            (m: any) => m.status === "now-showing"
+          );
+          setMovies(filtered);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error(e);
+      }
+    };
+    load();
+  }, []);
 
   const openTrailer = (trailerUrl: string) => {
     setSelectedTrailer(trailerUrl);
@@ -66,7 +44,7 @@ export default function NowShowing() {
     setSelectedTrailer("");
   };
 
-  const handleCardClick = (movieId: number) => {
+  const handleCardClick = (movieId: string) => {
     // Only handle click behavior on mobile/tablet
     if (window.innerWidth < 1024) {
       const newClickedCards = new Set(clickedCards);
@@ -96,15 +74,15 @@ export default function NowShowing() {
   // Auto-scroll functionality
   useEffect(() => {
     const autoScroll = setInterval(() => {
-      if (window.innerWidth < 1024 && !isCardActive) {
+      if (window.innerWidth < 1024 && !isCardActive && movies.length > 0) {
         // Only on mobile and if no card is active
-        const nextIndex = (currentMobileIndex + 1) % nowShowingMovies.length;
+        const nextIndex = (currentMobileIndex + 1) % movies.length;
         scrollToSlide(nextIndex);
       }
     }, 4000); // Auto-scroll every 4 seconds
 
     return () => clearInterval(autoScroll);
-  }, [currentMobileIndex, isCardActive]);
+  }, [currentMobileIndex, isCardActive, movies.length]);
 
   // Handle scroll events to update current index
   useEffect(() => {
@@ -141,7 +119,7 @@ export default function NowShowing() {
           Now Showing
         </h2>
 
-        {/* Desktop: Carousel with arrows, Mobile: Full width grid */}
+        {/* Mobile */}
         <div className="lg:hidden">
           <div className="relative">
             <div
@@ -149,71 +127,75 @@ export default function NowShowing() {
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               ref={scrollContainerRef}
             >
-              {nowShowingMovies.map((movie) => (
-                <div
-                  key={movie.id}
-                  className="flex-shrink-0 w-full px-4 snap-center"
-                  onClick={() => handleCardClick(movie.id)}
-                >
-                  <div className="relative bg-[#3F4F44] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
-                    <div className="relative">
-                      <Image
-                        src={movie.poster || "/placeholder.svg"}
-                        alt={movie.title}
-                        width={300}
-                        height={600}
-                        className={`w-full h-[32rem] object-cover transition-all duration-300 ${
-                          clickedCards.has(movie.id) ? "blur-sm" : ""
-                        }`}
-                      />
+              {movies.map((movie) => {
+                const id = String(movie._id || movie.id);
+                const genreStr = (movie.genres || []).join(", ");
+                const duration = movie.durationLabel || "";
+                return (
+                  <div
+                    key={id}
+                    className="flex-shrink-0 w-full px-4 snap-center"
+                    onClick={() => handleCardClick(id)}
+                  >
+                    <div className="relative bg-[#3F4F44] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
+                      <div className="relative">
+                        <Image
+                          src={movie.poster || "/placeholder.svg"}
+                          alt={movie.title}
+                          width={300}
+                          height={600}
+                          className={`w-full h-[32rem] object-cover transition-all duration-300 ${
+                            clickedCards.has(id) ? "blur-sm" : ""
+                          }`}
+                          unoptimized
+                        />
 
-                      {/* Click Overlay */}
-                      <div
-                        className={`absolute inset-0 bg-[#2C3930]/90 transition-opacity duration-300 flex flex-col justify-center items-center p-6 ${
-                          clickedCards.has(movie.id)
-                            ? "opacity-100"
-                            : "opacity-0"
-                        }`}
-                      >
-                        <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
-                          {movie.title}
-                        </h3>
-                        <p className="text-[#A2785C] text-sm mb-4 text-center">
-                          {movie.genre} • {movie.duration}
-                        </p>
-                        <div className="flex space-x-3">
-                          <Link href="/get-ticket">
+                        {/* Click Overlay */}
+                        <div
+                          className={`absolute inset-0 bg-[#2C3930]/90 transition-opacity duration-300 flex flex-col justify-center items-center p-6 ${
+                            clickedCards.has(id) ? "opacity-100" : "opacity-0"
+                          }`}
+                        >
+                          <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
+                            {movie.title}
+                          </h3>
+                          <p className="text-[#A2785C] text-sm mb-4 text-center">
+                            {genreStr} {duration && `• ${duration}`}
+                          </p>
+                          <div className="flex space-x-3">
+                            <Link href="/get-ticket">
+                              <Button
+                                size="sm"
+                                className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
+                              >
+                                <Ticket size={16} className="mr-1" />
+                                Buy Ticket
+                              </Button>
+                            </Link>
                             <Button
                               size="sm"
-                              className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
+                              variant="outline"
+                              className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openTrailer(movie.trailer);
+                              }}
                             >
-                              <Ticket size={16} className="mr-1" />
-                              Buy Ticket
+                              <Play size={16} className="mr-1" />
+                              Trailer
                             </Button>
-                          </Link>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openTrailer(movie.trailer);
-                            }}
-                          >
-                            <Play size={16} className="mr-1" />
-                            Trailer
-                          </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Dots indicator */}
             <div className="flex justify-center mt-4 space-x-2">
-              {nowShowingMovies.map((_, index) => (
+              {movies.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => scrollToSlide(index)}
@@ -228,7 +210,7 @@ export default function NowShowing() {
           </div>
         </div>
 
-        {/* Desktop: Original carousel design */}
+        {/* Desktop */}
         <div className="hidden lg:block">
           <div className="relative">
             {/* Navigation Buttons */}
@@ -271,56 +253,62 @@ export default function NowShowing() {
             {/* Movie Cards */}
             <div className="overflow-hidden mx-12">
               <div className="flex transition-transform duration-300 ease-in-out">
-                {nowShowingMovies.map((movie) => (
-                  <div
-                    key={movie.id}
-                    className="flex-shrink-0 w-1/3 px-4 group"
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    <div className="relative bg-[#3F4F44] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                      <div className="relative">
-                        <Image
-                          src={movie.poster || "/placeholder.svg"}
-                          alt={movie.title}
-                          width={300}
-                          height={400}
-                          className="w-full h-[32rem] object-cover transition-all duration-300 group-hover:blur-sm"
-                        />
+                {movies.map((movie) => {
+                  const id = String(movie._id || movie.id);
+                  const genreStr = (movie.genres || []).join(", ");
+                  const duration = movie.durationLabel || "";
+                  return (
+                    <div
+                      key={id}
+                      className="flex-shrink-0 w-1/3 px-4 group"
+                      onMouseEnter={handleMouseEnter}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div className="relative bg-[#3F4F44] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                        <div className="relative">
+                          <Image
+                            src={movie.poster || "/placeholder.svg"}
+                            alt={movie.title}
+                            width={300}
+                            height={400}
+                            className="w-full h-[32rem] object-cover transition-all duration-300 group-hover:blur-sm"
+                            unoptimized
+                          />
 
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-[#2C3930]/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-6">
-                          <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
-                            {movie.title}
-                          </h3>
-                          <p className="text-[#A2785C] text-sm mb-4 text-center">
-                            {movie.genre} • {movie.duration}
-                          </p>
-                          <div className="flex space-x-3">
-                            <Link href="/get-ticket">
+                          {/* Hover Overlay */}
+                          <div className="absolute inset-0 bg-[#2C3930]/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-6">
+                            <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
+                              {movie.title}
+                            </h3>
+                            <p className="text-[#A2785C] text-sm mb-4 text-center">
+                              {genreStr} {duration && `• ${duration}`}
+                            </p>
+                            <div className="flex space-x-3">
+                              <Link href="/get-ticket">
+                                <Button
+                                  size="sm"
+                                  className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
+                                >
+                                  <Ticket size={16} className="mr-1" />
+                                  Buy Ticket
+                                </Button>
+                              </Link>
                               <Button
                                 size="sm"
-                                className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
+                                variant="outline"
+                                className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent"
+                                onClick={() => openTrailer(movie.trailer)}
                               >
-                                <Ticket size={16} className="mr-1" />
-                                Buy Ticket
+                                <Play size={16} className="mr-1" />
+                                Trailer
                               </Button>
-                            </Link>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent"
-                              onClick={() => openTrailer(movie.trailer)}
-                            >
-                              <Play size={16} className="mr-1" />
-                              Trailer
-                            </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>

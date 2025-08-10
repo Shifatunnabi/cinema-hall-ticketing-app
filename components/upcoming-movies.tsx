@@ -5,53 +5,32 @@ import Image from "next/image";
 import { Play, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const upcomingMovies = [
-  {
-    id: 1,
-    title: "Spider-Man: Across the Spider-Verse",
-    genre: "Animation, Action",
-    releaseDate: "June 2, 2023",
-    poster:
-      "https://m.media-amazon.com/images/M/MV5BMDI2MThlNzAtYjU0MS00ZDYyLWEyOWItMjQzMGNhY2RkNDdjXkEyXkFqcGc@._V1_.jpg",
-    trailer: "https://www.youtube.com/embed/cqGjhVJWtEg",
-  },
-  {
-    id: 2,
-    title: "Guardians of the Galaxy Vol. 3",
-    genre: "Action, Adventure",
-    releaseDate: "May 5, 2023",
-    poster:
-      "https://images.justwatch.com/poster/318087954/s718/toofan-2024.jpg",
-    trailer: "https://www.youtube.com/embed/u3V5KDHRQvk",
-  },
-  {
-    id: 3,
-    title: "Fast X",
-    genre: "Action, Crime",
-    releaseDate: "May 19, 2023",
-    poster:
-      "https://m.media-amazon.com/images/M/MV5BZmMwZTk1MDctMjM1My00YTA5LTg0YmYtZWE5Y2Q4N2JhZGQ1XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-    trailer: "https://www.youtube.com/embed/32RAq6JzY-w",
-  },
-  {
-    id: 4,
-    title: "Indiana Jones 5",
-    genre: "Action, Adventure",
-    releaseDate: "June 30, 2023",
-    poster: "https://i.ibb.co.com/Lhb8TTHr/Screenshot-2025-08-06-180557.png",
-    trailer: "https://www.youtube.com/embed/ZVuToMilP6M",
-  },
-];
-
 export default function UpcomingMovies() {
   const [showTrailer, setShowTrailer] = useState(false);
   const [selectedTrailer, setSelectedTrailer] = useState("");
-  const [clickedCards, setClickedCards] = useState<Set<number>>(new Set());
+  const [clickedCards, setClickedCards] = useState<Set<string>>(new Set());
   const [isCardActive, setIsCardActive] = useState(false);
-
-  // Add these state variables after the existing ones:
   const [currentMobileIndex, setCurrentMobileIndex] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const [movies, setMovies] = useState<any[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/api/movies", { cache: "no-store" });
+        const all = await res.json();
+        if (res.ok) {
+          const filtered = (all || []).filter(
+            (m: any) => m.status === "upcoming"
+          );
+          setMovies(filtered);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+    load();
+  }, []);
 
   const openTrailer = (trailerUrl: string) => {
     setSelectedTrailer(trailerUrl);
@@ -63,73 +42,57 @@ export default function UpcomingMovies() {
     setSelectedTrailer("");
   };
 
-  const handleCardClick = (movieId: number) => {
-    // Only handle click behavior on mobile/tablet
+  const handleCardClick = (movieId: string) => {
     if (window.innerWidth < 1024) {
       const newClickedCards = new Set(clickedCards);
       if (clickedCards.has(movieId)) {
         newClickedCards.delete(movieId);
-        setIsCardActive(false); // No cards are active
+        setIsCardActive(false);
       } else {
         newClickedCards.add(movieId);
-        setIsCardActive(true); // A card is now active
+        setIsCardActive(true);
       }
       setClickedCards(newClickedCards);
     }
   };
 
-  // Add these functions after the existing functions:
   const scrollToSlide = (index: number) => {
     if (scrollContainerRef.current) {
       const container = scrollContainerRef.current;
       const slideWidth = container.offsetWidth;
-      container.scrollTo({
-        left: slideWidth * index,
-        behavior: "smooth",
-      });
+      container.scrollTo({ left: slideWidth * index, behavior: "smooth" });
       setCurrentMobileIndex(index);
     }
   };
 
-  // Auto-scroll functionality
   useEffect(() => {
     const autoScroll = setInterval(() => {
-      if (window.innerWidth < 1024 && !isCardActive) {
-        // Only on mobile
-        const nextIndex = (currentMobileIndex + 1) % upcomingMovies.length;
+      if (window.innerWidth < 1024 && !isCardActive && movies.length > 0) {
+        const nextIndex = (currentMobileIndex + 1) % movies.length;
         scrollToSlide(nextIndex);
       }
-    }, 4000); // Auto-scroll every 4 seconds
-
+    }, 4000);
     return () => clearInterval(autoScroll);
-  }, [currentMobileIndex, isCardActive]);
+  }, [currentMobileIndex, isCardActive, movies.length]);
 
-  // Handle scroll events to update current index
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
-
     const handleScroll = () => {
       const scrollLeft = container.scrollLeft;
       const slideWidth = container.offsetWidth;
       const newIndex = Math.round(scrollLeft / slideWidth);
       setCurrentMobileIndex(newIndex);
     };
-
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleMouseEnter = () => {
-    if (window.innerWidth >= 1024) {
-      setIsCardActive(true);
-    }
+    if (window.innerWidth >= 1024) setIsCardActive(true);
   };
-
   const handleMouseLeave = () => {
-    if (window.innerWidth >= 1024) {
-      setIsCardActive(false);
-    }
+    if (window.innerWidth >= 1024) setIsCardActive(false);
   };
 
   return (
@@ -139,8 +102,7 @@ export default function UpcomingMovies() {
           Coming Soon
         </h2>
 
-        {/* Desktop: Carousel with arrows, Mobile: Full width grid */}
-        {/* Mobile: Horizontal scrolling carousel */}
+        {/* Mobile */}
         <div className="lg:hidden">
           <div className="relative">
             <div
@@ -148,77 +110,75 @@ export default function UpcomingMovies() {
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               ref={scrollContainerRef}
             >
-              {upcomingMovies.map((movie) => (
-                <div
-                  key={movie.id}
-                  className="flex-shrink-0 w-full px-4 snap-center"
-                  onClick={() => handleCardClick(movie.id)}
-                >
-                  <div className="relative bg-[#3F4F44] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
-                    <div className="relative">
-                      <Image
-                        src={movie.poster || "/placeholder.svg"}
-                        alt={movie.title}
-                        width={300}
-                        height={400}
-                        className={`w-full h-[32rem] object-cover transition-all duration-300 ${
-                          clickedCards.has(movie.id) ? "blur-sm" : ""
-                        }`}
-                      />
+              {movies.map((movie) => {
+                const id = String(movie._id || movie.id);
+                const genreStr = (movie.genres || []).join(", ");
+                return (
+                  <div
+                    key={id}
+                    className="flex-shrink-0 w-full px-4 snap-center"
+                    onClick={() => handleCardClick(id)}
+                  >
+                    <div className="relative bg-[#3F4F44] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer">
+                      <div className="relative">
+                        <Image
+                          src={movie.poster || "/placeholder.svg"}
+                          alt={movie.title}
+                          width={300}
+                          height={400}
+                          className={`w-full h-[32rem] object-cover transition-all duration-300 ${
+                            clickedCards.has(id) ? "blur-sm" : ""
+                          }`}
+                          unoptimized
+                        />
 
-                      {/* Coming Soon Badge */}
-                      <div className="absolute top-4 left-4 bg-[#A2785C] text-[#DCD7C9] px-3 py-1 rounded-full text-sm font-semibold">
-                        Coming Soon
-                      </div>
+                        <div className="absolute top-4 left-4 bg-[#A2785C] text-[#DCD7C9] px-3 py-1 rounded-full text-sm font-semibold">
+                          Coming Soon
+                        </div>
 
-                      {/* Click Overlay */}
-                      <div
-                        className={`absolute inset-0 bg-[#2C3930]/90 transition-opacity duration-300 flex flex-col justify-center items-center p-6 ${
-                          clickedCards.has(movie.id)
-                            ? "opacity-100"
-                            : "opacity-0"
-                        }`}
-                      >
-                        <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
-                          {movie.title}
-                        </h3>
-                        <p className="text-[#A2785C] text-sm mb-2 text-center">
-                          {movie.genre}
-                        </p>
-                        <p className="text-[#DCD7C9] text-sm mb-4 text-center">
-                          Release: {movie.releaseDate}
-                        </p>
-                        <div className="flex space-x-3">
-                          <Button
-                            size="sm"
-                            className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
-                          >
-                            <Bell size={16} className="mr-1" />
-                            Notify Me
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openTrailer(movie.trailer);
-                            }}
-                          >
-                            <Play size={16} className="mr-1" />
-                            Trailer
-                          </Button>
+                        <div
+                          className={`absolute inset-0 bg-[#2C3930]/90 transition-opacity duration-300 flex flex-col justify-center items-center p-6 ${
+                            clickedCards.has(id) ? "opacity-100" : "opacity-0"
+                          }`}
+                        >
+                          <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
+                            {movie.title}
+                          </h3>
+                          <p className="text-[#A2785C] text-sm mb-2 text-center">
+                            {genreStr}
+                          </p>
+                          <div className="flex space-x-3">
+                            <Button
+                              size="sm"
+                              className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
+                            >
+                              <Bell size={16} className="mr-1" />
+                              Notify Me
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTrailer(movie.trailer);
+                                setShowTrailer(true);
+                              }}
+                            >
+                              <Play size={16} className="mr-1" />
+                              Trailer
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
-            {/* Dots indicator */}
             <div className="flex justify-center mt-4 space-x-2">
-              {upcomingMovies.map((_, index) => (
+              {movies.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => scrollToSlide(index)}
@@ -233,10 +193,9 @@ export default function UpcomingMovies() {
           </div>
         </div>
 
-        {/* Desktop: Original carousel design */}
+        {/* Desktop */}
         <div className="hidden lg:block">
           <div className="relative">
-            {/* Navigation Buttons */}
             <button className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-[#2C3930] hover:bg-[#3F4F44] text-[#DCD7C9] p-3 rounded-full shadow-lg transition-colors">
               <svg
                 width="24"
@@ -273,72 +232,71 @@ export default function UpcomingMovies() {
               </svg>
             </button>
 
-            {/* Movie Cards */}
             <div className="overflow-hidden mx-12">
               <div className="flex transition-transform duration-300 ease-in-out">
-                {upcomingMovies.map((movie) => (
-                  <div
-                    key={movie.id}
-                    className="flex-shrink-0 w-1/3 px-4 group"
-                    onMouseEnter={handleMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    <div className="relative bg-[#3F4F44] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
-                      <div className="relative">
-                        <Image
-                          src={movie.poster || "/placeholder.svg"}
-                          alt={movie.title}
-                          width={300}
-                          height={400}
-                          className="w-full h-[32rem] object-cover transition-all duration-300 group-hover:blur-sm"
-                        />
-
-                        {/* Coming Soon Badge */}
-                        <div className="absolute top-4 left-4 bg-[#A2785C] text-[#DCD7C9] px-3 py-1 rounded-full text-sm font-semibold">
-                          Coming Soon
-                        </div>
-
-                        {/* Hover Overlay */}
-                        <div className="absolute inset-0 bg-[#2C3930]/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-6">
-                          <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
-                            {movie.title}
-                          </h3>
-                          <p className="text-[#A2785C] text-sm mb-2 text-center">
-                            {movie.genre}
-                          </p>
-                          <p className="text-[#DCD7C9] text-sm mb-4 text-center">
-                            Release: {movie.releaseDate}
-                          </p>
-                          <div className="flex space-x-3">
-                            <Button
-                              size="sm"
-                              className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
-                            >
-                              <Bell size={16} className="mr-1" />
-                              Notify Me
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent"
-                              onClick={() => openTrailer(movie.trailer)}
-                            >
-                              <Play size={16} className="mr-1" />
-                              Trailer
-                            </Button>
+                {movies.map((movie) => {
+                  const id = String(movie._id || movie.id);
+                  const genreStr = (movie.genres || []).join(", ");
+                  return (
+                    <div
+                      key={id}
+                      className="flex-shrink-0 w-1/3 px-4 group"
+                      onMouseEnter={handleMouseEnter}
+                      onMouseLeave={handleMouseLeave}
+                    >
+                      <div className="relative bg-[#3F4F44] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300">
+                        <div className="relative">
+                          <Image
+                            src={movie.poster || "/placeholder.svg"}
+                            alt={movie.title}
+                            width={300}
+                            height={400}
+                            className="w-full h-[32rem] object-cover transition-all duration-300 group-hover:blur-sm"
+                            unoptimized
+                          />
+                          <div className="absolute top-4 left-4 bg-[#A2785C] text-[#DCD7C9] px-3 py-1 rounded-full text-sm font-semibold">
+                            Coming Soon
+                          </div>
+                          <div className="absolute inset-0 bg-[#2C3930]/90 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-center items-center p-6">
+                            <h3 className="text-xl font-bold text-[#DCD7C9] mb-2 text-center">
+                              {movie.title}
+                            </h3>
+                            <p className="text-[#A2785C] text-sm mb-2 text-center">
+                              {genreStr}
+                            </p>
+                            <div className="flex space-x-3">
+                              <Button
+                                size="sm"
+                                className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9]"
+                              >
+                                <Bell size={16} className="mr-1" />
+                                Notify Me
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent"
+                                onClick={() => {
+                                  setSelectedTrailer(movie.trailer);
+                                  setShowTrailer(true);
+                                }}
+                              >
+                                <Play size={16} className="mr-1" />
+                                Trailer
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Trailer Modal */}
       {showTrailer && (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
           <div className="relative bg-[#2C3930] rounded-lg overflow-hidden max-w-4xl w-full">

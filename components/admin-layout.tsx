@@ -1,11 +1,21 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useRouter, usePathname } from "next/navigation"
-import { LayoutDashboard, Film, Newspaper, Ticket, LogOut, Menu, X, User } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Film,
+  Newspaper,
+  Ticket,
+  LogOut,
+  Menu,
+  X,
+  User,
+  Users as UsersIcon,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 const navigationItems = [
   {
@@ -28,54 +38,46 @@ const navigationItems = [
     href: "/admin/tickets",
     icon: Ticket,
   },
-]
+  {
+    name: "Admins & Moderators",
+    href: "/admin/users",
+    icon: UsersIcon,
+  },
+];
 
 interface AdminLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const adminAuth = localStorage.getItem("adminAuth")
-      if (adminAuth !== "authenticated") {
-        router.push("/admin/login")
-        return
-      }
-      setIsAuthenticated(true)
-    }
-
-    checkAuth()
-  }, [router])
-
-  const handleLogout = () => {
-    localStorage.removeItem("adminAuth")
-    router.push("/admin/login")
-  }
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/admin/login");
+  };
 
   const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen)
-  }
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   const closeSidebar = () => {
-    setIsSidebarOpen(false)
-  }
-
-  if (!isAuthenticated) {
-    return null
-  }
+    setIsSidebarOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#DCD7C9]">
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[#2C3930] text-[#DCD7C9] p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <Button onClick={toggleSidebar} variant="ghost" size="sm" className="text-[#DCD7C9] hover:bg-[#3F4F44]">
+          <Button
+            onClick={toggleSidebar}
+            variant="ghost"
+            size="sm"
+            className="text-[#DCD7C9] hover:bg-[#3F4F44]"
+          >
             <Menu size={20} />
           </Button>
           <h1 className="text-lg font-bold">Admin Panel</h1>
@@ -87,7 +89,12 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
       </div>
 
       {/* Mobile Overlay */}
-      {isSidebarOpen && <div className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50" onClick={closeSidebar} />}
+      {isSidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black bg-opacity-50"
+          onClick={closeSidebar}
+        />
+      )}
 
       {/* Desktop Layout Container */}
       <div className="lg:flex">
@@ -134,13 +141,13 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {navigationItems.map((item) => {
-              const isActive = pathname === item.href
+              const isActive = pathname === item.href;
               return (
                 <button
                   key={item.name}
                   onClick={() => {
-                    router.push(item.href)
-                    closeSidebar()
+                    router.push(item.href);
+                    closeSidebar();
                   }}
                   className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200 ${
                     isActive
@@ -151,14 +158,16 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                   <item.icon size={20} />
                   <span className="font-medium">{item.name}</span>
                 </button>
-              )
+              );
             })}
           </nav>
         </div>
 
         {/* Main Content - Properly positioned for desktop */}
-        <div className="flex-1 lg:ml-0 pt-16 lg:pt-0 min-h-screen">{children}</div>
+        <div className="flex-1 lg:ml-0 pt-16 lg:pt-0 min-h-screen">
+          {children}
+        </div>
       </div>
     </div>
-  )
+  );
 }
