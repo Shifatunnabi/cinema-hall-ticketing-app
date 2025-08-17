@@ -48,3 +48,53 @@ export interface Movie {
   createdAt: Date;
   updatedAt: Date;
 }
+
+export interface News {
+  _id?: ObjectId;
+  title: string;
+  description: string;
+  image: string; // cloudinary URL or external URL
+  link?: string; // optional external link
+  featured: boolean;
+  isActive: boolean;
+  author?: string;
+  category?: string;
+  views?: number;
+  readTime?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Booking/Ticket generated upon successful payment
+export type BookingStatus = "initiated" | "paid" | "failed";
+
+export interface Booking {
+  _id?: ObjectId;
+  status: BookingStatus;
+  // purchase selections
+  movieId: ObjectId;
+  movieTitle: string;
+  showDate: string; // YYYY-MM-DD
+  showTime: string; // HH:MM
+  seatType: string;
+  quantity: number;
+  unitPrice: number; // price per seat in BDT
+  totalAmount: number; // BDT
+  // customer
+  customerName: string;
+  customerMobile: string;
+  customerEmail: string;
+  // payment
+  provider: "bkash";
+  bkash: {
+    paymentID?: string;
+    trxID?: string;
+    invoice?: string; // merchantInvoiceNumber
+    rawCreateResponse?: any;
+    rawExecuteResponse?: any;
+  };
+  // ticket info (after paid)
+  ticketNumber?: string; // generated code like AC-XXXXXX
+  createdAt: Date;
+  updatedAt: Date;
+}

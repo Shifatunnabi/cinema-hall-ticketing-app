@@ -51,9 +51,11 @@ const mockNews = [
 
 export default function NewsManagement() {
   const router = useRouter()
-  const [news, setNews] = useState(mockNews)
+  const [news, setNews] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [editingNews, setEditingNews] = useState<any>(null)
+  const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -67,40 +69,125 @@ export default function NewsManagement() {
       const adminAuth = localStorage.getItem("adminAuth")
       if (adminAuth !== "authenticated") {
         router.push("/admin/login")
+        return
       }
+      fetchNews()
     }
 
     checkAuth()
   }, [router])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (editingNews) {
-      // Update existing news
-      setNews(news.map((item) => (item.id === editingNews.id ? { ...item, ...formData } : item)))
-      setEditingNews(null)
-    } else {
-      // Add new news
-      const newNews = {
-        id: Date.now(),
-        ...formData,
-        isActive: true,
-        date: new Date().toLocaleDateString("en-US", {
-          year: "numeric",
-          month: "long",
-          day: "numeric",
-        }),
+  const fetchNews = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch("/api/admin/news")
+      const data = await response.json()
+      
+      if (response.ok) {
+        // Transform MongoDB data to match the existing UI format
+        const transformedNews = data.news.map((item: any) => ({
+          id: item._id,
+          title: item.title,
+          description: item.description,
+          image: item.image,
+          link: item.link,
+          featured: item.featured,
+          isActive: item.isActive,
+          date: new Date(item.createdAt).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          }),
+        }))
+        setNews(transformedNews)
+      } else {
+        console.error("Failed to fetch news:", data.error)
       }
-      setNews([...news, newNews])
+    } catch (error) {
+      console.error("Error fetching news:", error)
+    } finally {
+      setLoading(false)
     }
-    setFormData({
-      title: "",
-      description: "",
-      image: "",
-      link: "",
-      featured: false,
-    })
-    setIsAddDialogOpen(false)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setSubmitting(true)
+
+    try {
+      if (editingNews) {
+        // Update existing news
+        const response = await fetch(`/api/news/${editingNews.id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        })
+
+        const data = await response.json()
+
+        if (response.ok) {
+          // Update local state
+          setNews(news.map((item) => 
+            item.id === editingNews.id 
+              ? { ...item, ...formData }
+              : item
+          ))
+          alert("News updated successfully!")
+        } else {
+          alert(data.error || "Failed to update news")
+        }
+        setEditingNews(null)
+      } else {
+        // Add new news
+        const response = await fetch("/api/news", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        })
+
+        const data = await response.json()
+
+        if (response.ok) {
+          // Transform the response to match UI format
+          const newNews = {
+            id: data.news._id,
+            title: data.news.title,
+            description: data.news.description,
+            image: data.news.image,
+            link: data.news.link,
+            featured: data.news.featured,
+            isActive: data.news.isActive,
+            date: new Date(data.news.createdAt).toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }),
+          }
+          setNews([newNews, ...news])
+          alert("News created successfully!")
+        } else {
+          alert(data.error || "Failed to create news")
+        }
+      }
+
+      setFormData({
+        title: "",
+        description: "",
+        image: "",
+        link: "",
+        featured: false,
+      })
+      setIsAddDialogOpen(false)
+    } catch (error) {
+      console.error("Error submitting news:", error)
+      alert("An error occurred. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleEdit = (newsItem: any) => {
@@ -115,14 +202,56 @@ export default function NewsManagement() {
     setIsAddDialogOpen(true)
   }
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm("Are you sure you want to delete this news article?")) {
-      setNews(news.filter((item) => item.id !== id))
+      try {
+        const response = await fetch(`/api/news/${id}`, {
+          method: "DELETE",
+        })
+
+        const data = await response.json()
+
+        if (response.ok) {
+          setNews(news.filter((item) => item.id !== id))
+          alert("News deleted successfully!")
+        } else {
+          alert(data.error || "Failed to delete news")
+        }
+      } catch (error) {
+        console.error("Error deleting news:", error)
+        alert("An error occurred. Please try again.")
+      }
     }
   }
 
-  const toggleActive = (id: number) => {
-    setNews(news.map((item) => (item.id === id ? { ...item, isActive: !item.isActive } : item)))
+  const toggleActive = async (id: string) => {
+    try {
+      const currentNews = news.find(item => item.id === id)
+      if (!currentNews) return
+
+      const response = await fetch(`/api/news/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ isActive: !currentNews.isActive }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setNews(news.map((item) => 
+          item.id === id 
+            ? { ...item, isActive: !item.isActive }
+            : item
+        ))
+      } else {
+        alert(data.error || "Failed to update news status")
+      }
+    } catch (error) {
+      console.error("Error toggling news status:", error)
+      alert("An error occurred. Please try again.")
+    }
   }
 
   return (
@@ -214,10 +343,22 @@ export default function NewsManagement() {
                 </div>
 
                 <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4 pt-4">
-                  <Button type="submit" className="bg-[#A2785C] hover:bg-[#A2785C]/90 text-[#DCD7C9]">
-                    {editingNews ? "Update News" : "Add News"}
+                  <Button 
+                    type="submit" 
+                    className="bg-[#A2785C] hover:bg-[#A2785C]/90 text-[#DCD7C9]"
+                    disabled={submitting}
+                  >
+                    {submitting 
+                      ? (editingNews ? "Updating..." : "Adding...")
+                      : (editingNews ? "Update News" : "Add News")
+                    }
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setIsAddDialogOpen(false)}
+                    disabled={submitting}
+                  >
                     Cancel
                   </Button>
                 </div>
@@ -227,8 +368,33 @@ export default function NewsManagement() {
         </div>
 
         {/* News Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {news.map((item) => (
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Card key={i} className="bg-white shadow-lg animate-pulse">
+                <CardHeader className="p-0">
+                  <div className="h-40 md:h-48 bg-gray-200 rounded-t-lg"></div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 rounded mb-4"></div>
+                  <div className="flex gap-2">
+                    <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                    <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : news.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-[#3F4F44] text-lg">No news articles found.</p>
+            <p className="text-[#3F4F44] text-sm">Click "Add New News" to create your first article.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            {news.map((item) => (
             <Card key={item.id} className={`bg-white shadow-lg ${!item.isActive ? "opacity-50" : ""}`}>
               <CardHeader className="p-0">
                 <div className="relative">
@@ -285,7 +451,8 @@ export default function NewsManagement() {
               </CardContent>
             </Card>
           ))}
-        </div>
+          </div>
+        )}
       </div>
     </AdminLayout>
   )
