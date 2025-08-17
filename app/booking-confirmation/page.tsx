@@ -1,11 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { Suspense, useState, useEffect } from "react"
 import { CheckCircle, Download, Mail, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useSearchParams } from "next/navigation"
 
-export default function BookingConfirmationPage() {
+function BookingConfirmationContent() {
   const sp = useSearchParams()
   const bookingId = sp.get("bookingId")
   const [isGeneratingTicket, setIsGeneratingTicket] = useState(true)
@@ -221,4 +221,12 @@ export default function BookingConfirmationPage() {
       </div>
     </div>
   )
+}
+
+export default function BookingConfirmationPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <BookingConfirmationContent />
+    </Suspense>
+  );
 }

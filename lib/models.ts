@@ -49,6 +49,22 @@ export interface Movie {
   updatedAt: Date;
 }
 
+export interface News {
+  _id?: ObjectId;
+  title: string;
+  description: string;
+  image: string; // cloudinary URL or external URL
+  link?: string; // optional external link
+  featured: boolean;
+  isActive: boolean;
+  author?: string;
+  category?: string;
+  views?: number;
+  readTime?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 // Booking/Ticket generated upon successful payment
 export type BookingStatus = "initiated" | "paid" | "failed";
 
