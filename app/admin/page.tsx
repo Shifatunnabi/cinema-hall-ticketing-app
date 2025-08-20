@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Users, DollarSign, Clock, Film, Newspaper } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminLayout from "@/components/admin-layout";
+import { useAdminAuth } from "@/hooks/use-admin-auth";
 
 // Mock data for analytics
 const mockAnalytics = {
@@ -28,7 +29,28 @@ const mockAnalytics = {
 };
 
 export default function AdminDashboard() {
+  const { authenticated, loading, redirectToLogin } = useAdminAuth();
   const [selectedTab, setSelectedTab] = useState("day");
+
+  // Handle authentication
+  useEffect(() => {
+    if (!loading && !authenticated) {
+      redirectToLogin();
+    }
+  }, [loading, authenticated, redirectToLogin]);
+
+  // Show loading or redirect if not authenticated
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#DCD7C9] flex items-center justify-center">
+        <div className="text-[#2C3930]">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return null; // Will redirect
+  }
 
   return (
     <AdminLayout>

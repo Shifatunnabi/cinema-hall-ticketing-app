@@ -37,6 +37,8 @@ export default function AdminLogin() {
       if (!res.ok) {
         setError(data.error || "Login failed");
       } else {
+        // Set localStorage flag for client-side auth checks
+        localStorage.setItem("adminAuth", "authenticated");
         router.push("/admin");
       }
     } catch (err) {

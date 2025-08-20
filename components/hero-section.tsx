@@ -7,42 +7,32 @@ import { useRouter } from "next/navigation";
 import { Play, Calendar, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-const movies = [
-  {
-    id: 1,
-    title: "Avatar: The Way of Water",
-    genre: "Sci-Fi, Adventure",
-    duration: "3h 12m",
-    rating: "PG-13",
-    poster:
-      "https://m.media-amazon.com/images/M/MV5BMDI2MThlNzAtYjU0MS00ZDYyLWEyOWItMjQzMGNhY2RkNDdjXkEyXkFqcGc@._V1_.jpg",
-  },
-  {
-    id: 2,
-    title: "Top Gun: Maverick",
-    genre: "Action, Drama",
-    duration: "2h 11m",
-    rating: "PG-13",
-    poster:
-      "https://images.justwatch.com/poster/318087954/s718/toofan-2024.jpg",
-  },
-  {
-    id: 3,
-    title: "Black Panther: Wakanda Forever",
-    genre: "Action, Adventure",
-    duration: "2h 41m",
-    rating: "PG-13",
-    poster:
-      "https://m.media-amazon.com/images/M/MV5BZmMwZTk1MDctMjM1My00YTA5LTg0YmYtZWE5Y2Q4N2JhZGQ1XkEyXkFqcGc@._V1_FMjpg_UX1000_.jpg",
-  },
-];
-
 export default function HeroSection() {
   const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [dates, setDates] = useState<any[]>([]);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [movies, setMovies] = useState<any[]>([]);
+
+  // Load Now Showing movies from API
+  useEffect(() => {
+    const loadMovies = async () => {
+      try {
+        const res = await fetch("/api/movies", { cache: "no-store" });
+        const allMovies = await res.json();
+        if (res.ok) {
+          const nowShowingMovies = (allMovies || []).filter(
+            (movie: any) => movie.status === "now-showing"
+          );
+          setMovies(nowShowingMovies);
+        }
+      } catch (error) {
+        console.error("Error loading movies:", error);
+      }
+    };
+    loadMovies();
+  }, []);
 
   useEffect(() => {
     // Generate dates (3 before today, today, 3 after today)
@@ -68,11 +58,14 @@ export default function HeroSection() {
   }, []);
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % movies.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
+    // Only auto-slide if there are multiple movies
+    if (movies.length > 1) {
+      const timer = setInterval(() => {
+        setCurrentSlide((prev) => (prev + 1) % movies.length);
+      }, 5000);
+      return () => clearInterval(timer);
+    }
+  }, [movies.length]);
 
   const handleDateClick = (dateInfo: any) => {
     if (dateInfo.isPast) return; // Don't allow past dates
@@ -200,19 +193,34 @@ export default function HeroSection() {
     <section className="relative overflow-hidden lg:h-screen">
       {/* Mobile: 16:9 aspect ratio, Desktop: full height */}
       <div className="w-full lg:h-screen" style={{ aspectRatio: "16/9" }}>
-        {/* Movie Carousel */}
-        <div className="absolute inset-0">
-          {movies.map((movie, index) => (
+      {/* Movie Carousel */}
+      <div className="absolute inset-0">
+        {movies.length === 0 ? (
+          // Show placeholder when no movies are available
+          <div className="absolute inset-0">
+            <div className="relative w-full h-full">
+              <Image
+                src="/placeholder.svg"
+                alt="No movies available"
+                fill
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#2C3930]/80 via-transparent to-[#2C3930]/60"></div>
+            </div>
+          </div>
+        ) : (
+          movies.map((movie, index) => (
             <div
-              key={movie.id}
+              key={movie._id || movie.id}
               className={`absolute inset-0 transition-transform duration-1000 ease-in-out ${
                 index === currentSlide ? "translate-x-0" : "translate-x-full"
               }`}
             >
               <div className="relative w-full h-full">
                 <Image
-                  src={movie.poster || "/placeholder.svg"}
-                  alt={movie.title}
+                  src={movie.thumbnail || movie.poster || "/placeholder.svg"}
+                  alt={movie.title || "Movie thumbnail"}
                   fill
                   className="object-cover"
                   priority={index === 0}
@@ -220,8 +228,9 @@ export default function HeroSection() {
                 <div className="absolute inset-0 bg-gradient-to-r from-[#2C3930]/80 via-transparent to-[#2C3930]/60"></div>
               </div>
             </div>
-          ))}
-        </div>
+          ))
+        )}
+      </div>
 
         {/* Calendar - Left Side (Hidden on mobile/tablet) */}
         <div className="absolute left-4 md:left-8 top-20 z-20 hidden lg:block">
@@ -278,48 +287,66 @@ export default function HeroSection() {
 
         {/* Movie Info - Bottom Left with smaller text on mobile */}
         <div className="absolute bottom-4 left-4 right-4 lg:bottom-32 lg:left-64 lg:right-auto lg:max-w-lg z-20">
-          <div className="mb-1 lg:mb-3">
-            <span
-              className="inline-block text-[#A2785C] text-xs lg:text-lg font-semibold tracking-wide"
-              style={{ textShadow: "2px 2px 4px rgba(44, 57, 48, 0.8)" }}
-            >
-              {movies[currentSlide].genre}
-            </span>
-          </div>
+          {movies.length > 0 ? (
+            <>
+              <div className="mb-1 lg:mb-3">
+                <span
+                  className="inline-block text-[#A2785C] text-xs lg:text-lg font-semibold tracking-wide"
+                  style={{ textShadow: "2px 2px 4px rgba(44, 57, 48, 0.8)" }}
+                >
+                  {movies[currentSlide]?.genre || "Movie"}
+                </span>
+              </div>
 
-          <h1
-            className="text-lg lg:text-4xl xl:text-5xl font-bold text-[#DCD7C9] mb-1 lg:mb-3 leading-tight"
-            style={{ textShadow: "3px 3px 6px rgba(44, 57, 48, 0.9)" }}
-          >
-            {movies[currentSlide].title}
-          </h1>
-
-          <p
-            className="text-[#DCD7C9] text-xs lg:text-base mb-2 lg:mb-6 opacity-90"
-            style={{ textShadow: "2px 2px 4px rgba(44, 57, 48, 0.8)" }}
-          >
-            Duration: {movies[currentSlide].duration} • Rating:{" "}
-            {movies[currentSlide].rating}
-          </p>
-
-          <div className="flex space-x-2 lg:space-x-4">
-            <Button
-              variant="outline"
-              size="sm"
-              className="bg-transparent border border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] px-2 lg:px-6 py-1 lg:py-2 font-semibold text-xs lg:text-base"
-            >
-              More Info
-            </Button>
-            <Link href="/get-ticket">
-              <Button
-                size="sm"
-                className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9] px-2 lg:px-6 py-1 lg:py-2 font-semibold text-xs lg:text-base"
+              <h1
+                className="text-lg lg:text-4xl xl:text-5xl font-bold text-[#DCD7C9] mb-1 lg:mb-3 leading-tight"
+                style={{ textShadow: "3px 3px 6px rgba(44, 57, 48, 0.9)" }}
               >
-                <Play size={10} className="mr-1 lg:mr-2" />
-                Get Ticket
-              </Button>
-            </Link>
-          </div>
+                {movies[currentSlide]?.title || "Movie Title"}
+              </h1>
+
+              <p
+                className="text-[#DCD7C9] text-xs lg:text-base mb-2 lg:mb-6 opacity-90"
+                style={{ textShadow: "2px 2px 4px rgba(44, 57, 48, 0.8)" }}
+              >
+                Duration: {movies[currentSlide]?.durationMinutes ? `${movies[currentSlide].durationMinutes}m` : 'TBA'} • Now Showing
+              </p>
+
+              <div className="flex space-x-2 lg:space-x-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-transparent border border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] px-2 lg:px-6 py-1 lg:py-2 font-semibold text-xs lg:text-base"
+                >
+                  More Info
+                </Button>
+                <Link href="/get-ticket">
+                  <Button
+                    size="sm"
+                    className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9] px-2 lg:px-6 py-1 lg:py-2 font-semibold text-xs lg:text-base"
+                  >
+                    <Play size={10} className="mr-1 lg:mr-2" />
+                    Get Ticket
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <h1
+                className="text-lg lg:text-4xl xl:text-5xl font-bold text-[#DCD7C9] mb-1 lg:mb-3 leading-tight"
+                style={{ textShadow: "3px 3px 6px rgba(44, 57, 48, 0.9)" }}
+              >
+                Coming Soon
+              </h1>
+              <p
+                className="text-[#DCD7C9] text-xs lg:text-base mb-2 lg:mb-6 opacity-90"
+                style={{ textShadow: "2px 2px 4px rgba(44, 57, 48, 0.8)" }}
+              >
+                Stay tuned for exciting new movies!
+              </p>
+            </>
+          )}
         </div>
 
         {/* Now Showing Indicator - Top Right */}
@@ -341,18 +368,20 @@ export default function HeroSection() {
           </p>
         </div>
 
-        {/* Slide Indicators */}
-        <div className="absolute bottom-16 lg:bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
-          {movies.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              className={`w-2 h-2 lg:w-3 lg:h-3 rounded-full transition-colors ${
-                index === currentSlide ? "bg-[#A2785C]" : "bg-[#DCD7C9]/50"
-              }`}
-            />
-          ))}
-        </div>
+        {/* Slide Indicators - Only show if there are multiple movies */}
+        {movies.length > 1 && (
+          <div className="absolute bottom-16 lg:bottom-4 left-1/2 transform -translate-x-1/2 z-20 flex space-x-2">
+            {movies.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentSlide(index)}
+                className={`w-2 h-2 lg:w-3 lg:h-3 rounded-full transition-colors ${
+                  index === currentSlide ? "bg-[#A2785C]" : "bg-[#DCD7C9]/50"
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Calendar Modal */}
