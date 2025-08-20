@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import AdminLayout from "@/components/admin-layout";
 import { Calendar } from "@/components/ui/calendar";
+import { useAdminAuth } from "@/hooks/use-admin-auth";
 
 // Mock movie data
 const mockMovies = [] as any[];
@@ -58,9 +59,10 @@ function normalizeYouTubeEmbed(url: string) {
 }
 
 export default function MovieManagement() {
+  const { authenticated, loading, redirectToLogin } = useAdminAuth();
   const router = useRouter();
   const [movies, setMovies] = useState<any[]>(mockMovies);
-  const [loading, setLoading] = useState(true);
+  const [moviesLoading, setMoviesLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingMovie, setEditingMovie] = useState<any>(null);
   const [formData, setFormData] = useState({
@@ -87,20 +89,18 @@ export default function MovieManagement() {
     [k: string]: { [time: string]: { name: string; price: string }[] };
   }>({});
 
+  // Handle authentication
   useEffect(() => {
-    const checkAuth = () => {
-      const adminAuth = localStorage.getItem("adminAuth");
-      if (adminAuth !== "authenticated") {
-        router.push("/admin/login");
-      }
-    };
-    checkAuth();
-  }, [router]);
+    if (!loading && !authenticated) {
+      redirectToLogin();
+    }
+  }, [loading, authenticated, redirectToLogin]);
 
+  // Load movies
   useEffect(() => {
     const load = async () => {
       try {
-        setLoading(true);
+        setMoviesLoading(true);
         const res = await fetch("/api/movies", { cache: "no-store" });
         const json = await res.json();
         if (res.ok) setMovies(json);
@@ -108,11 +108,24 @@ export default function MovieManagement() {
         // eslint-disable-next-line no-console
         console.error(e);
       } finally {
-        setLoading(false);
+        setMoviesLoading(false);
       }
     };
     load();
   }, []);
+
+  // Show loading or redirect if not authenticated
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#DCD7C9] flex items-center justify-center">
+        <div className="text-[#2C3930]">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return null; // Will redirect
+  }
 
   function resetForm() {
     setFormData({

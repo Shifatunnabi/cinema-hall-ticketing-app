@@ -6,6 +6,7 @@ import { Calendar, Clock, CheckCircle, XCircle, Send, FileText, Phone, Mail, Use
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import AdminLayout from "@/components/admin-layout"
+import { useAdminAuth } from "@/hooks/use-admin-auth"
 
 // Comprehensive mock data structure for tickets with 3 movies and 3 showtimes each
 const mockTicketData: { [key: string]: any } = {}
@@ -202,6 +203,7 @@ const generateMockData = () => {
 generateMockData()
 
 export default function TicketManagement() {
+  const { authenticated, loading, redirectToLogin } = useAdminAuth();
   const router = useRouter()
   const [selectedDate, setSelectedDate] = useState("")
   const [selectedMovie, setSelectedMovie] = useState("")
@@ -212,14 +214,15 @@ export default function TicketManagement() {
   const [reportData, setReportData] = useState<any[]>([])
   const [showReport, setShowReport] = useState(false)
 
+  // Handle authentication
   useEffect(() => {
-    const checkAuth = () => {
-      const adminAuth = localStorage.getItem("adminAuth")
-      if (adminAuth !== "authenticated") {
-        router.push("/admin/login")
-        return
-      }
+    if (!loading && !authenticated) {
+      redirectToLogin();
+    }
+  }, [loading, authenticated, redirectToLogin]);
 
+  useEffect(() => {
+    if (authenticated) {
       // Generate next 7 days including today
       const today = new Date()
       const dateArray = []
@@ -233,9 +236,20 @@ export default function TicketManagement() {
       // Regenerate mock data to ensure it matches current dates
       generateMockData()
     }
+  }, [authenticated])
 
-    checkAuth()
-  }, [router])
+  // Show loading or redirect if not authenticated
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#DCD7C9] flex items-center justify-center">
+        <div className="text-[#2C3930]">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return null; // Will redirect
+  }
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)

@@ -2,103 +2,16 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { ChevronLeft, ChevronRight, Play, Ticket, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import BuyTicketButton from "@/components/buy-ticket-button"
 
-const nowShowingMovies = [
-  {
-    id: 1,
-    title: "Avatar: The Way of Water",
-    genre: "Sci-Fi, Adventure",
-    duration: "3h 12m",
-    rating: "PG-13",
-    poster: "/placeholder.svg?height=600&width=400",
-    trailer: "https://www.youtube.com/embed/d9MyW72ELq0",
-    description:
-      "Set more than a decade after the events of the first film, Avatar: The Way of Water begins to tell the story of the Sully family, the trouble that follows them, the lengths they go to keep each other safe, the battles they fight to stay alive, and the tragedies they endure.",
-  },
-  {
-    id: 2,
-    title: "Top Gun: Maverick",
-    genre: "Action, Drama",
-    duration: "2h 11m",
-    rating: "PG-13",
-    poster: "/placeholder.svg?height=600&width=400",
-    trailer: "https://www.youtube.com/embed/qSqVVswa420",
-    description:
-      "After thirty years, Maverick is still pushing the envelope as a top naval aviator, but must confront ghosts of his past when he leads TOP GUN's elite graduates on a mission that demands the ultimate sacrifice from those chosen to fly it.",
-  },
-  {
-    id: 3,
-    title: "Black Panther: Wakanda Forever",
-    genre: "Action, Adventure",
-    duration: "2h 41m",
-    rating: "PG-13",
-    poster: "/placeholder.svg?height=600&width=400",
-    trailer: "https://www.youtube.com/embed/_Z3QKkl1WyM",
-    description:
-      "Queen Ramonda, Shuri, M'Baku, Okoye and the Dora Milaje fight to protect their nation from intervening world powers in the wake of King T'Challa's death.",
-  },
-  {
-    id: 4,
-    title: "The Batman",
-    genre: "Action, Crime",
-    duration: "2h 56m",
-    rating: "PG-13",
-    poster: "/placeholder.svg?height=600&width=400",
-    trailer: "https://www.youtube.com/embed/mqqft2x_Aa4",
-    description:
-      "When a sadistic serial killer begins murdering key political figures in Gotham, Batman is forced to investigate the city's hidden corruption and question his family's involvement.",
-  },
-]
-
-const upcomingMovies = [
-  {
-    id: 1,
-    title: "Spider-Man: Across the Spider-Verse",
-    genre: "Animation, Action",
-    releaseDate: "June 2, 2023",
-    poster: "/placeholder.svg?height=600&width=400",
-    trailer: "https://www.youtube.com/embed/cqGjhVJWtEg",
-    description:
-      "Miles Morales catapults across the Multiverse, where he encounters a team of Spider-People charged with protecting its very existence.",
-  },
-  {
-    id: 2,
-    title: "Guardians of the Galaxy Vol. 3",
-    genre: "Action, Adventure",
-    releaseDate: "May 5, 2023",
-    poster: "/placeholder.svg?height=600&width=400",
-    trailer: "https://www.youtube.com/embed/u3V5KDHRQvk",
-    description:
-      "Peter Quill, still reeling from the loss of Gamora, must rally his team around him to defend the universe along with protecting one of their own.",
-  },
-  {
-    id: 3,
-    title: "Fast X",
-    genre: "Action, Crime",
-    releaseDate: "May 19, 2023",
-    poster: "/placeholder.svg?height=600&width=400",
-    trailer: "https://www.youtube.com/embed/32RAq6JzY-w",
-    description: "Dom Toretto and his family are targeted by the vengeful son of drug kingpin Hernan Reyes.",
-  },
-  {
-    id: 4,
-    title: "Indiana Jones 5",
-    genre: "Action, Adventure",
-    releaseDate: "June 30, 2023",
-    poster: "/placeholder.svg?height=600&width=400",
-    trailer: "https://www.youtube.com/embed/ZVuToMilP6M",
-    description:
-      "Aging archaeologist Indiana Jones races against time to retrieve a legendary artifact that can change the course of history.",
-  },
-]
-
 export default function MoviesPage() {
+  const [nowShowingMovies, setNowShowingMovies] = useState<any[]>([]);
+  const [upcomingMovies, setUpcomingMovies] = useState<any[]>([]);
   const [nowShowingIndex, setNowShowingIndex] = useState(0)
   const [upcomingIndex, setUpcomingIndex] = useState(0)
   const [showTrailer, setShowTrailer] = useState(false)
@@ -111,20 +24,51 @@ export default function MoviesPage() {
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
 
+  // Load movies from API
+  useEffect(() => {
+    const loadMovies = async () => {
+      try {
+        const res = await fetch("/api/movies", { cache: "no-store" });
+        const allMovies = await res.json();
+        if (res.ok) {
+          const nowShowing = (allMovies || []).filter(
+            (movie: any) => movie.status === "now-showing"
+          );
+          const upcoming = (allMovies || []).filter(
+            (movie: any) => movie.status === "upcoming"
+          );
+          setNowShowingMovies(nowShowing);
+          setUpcomingMovies(upcoming);
+        }
+      } catch (error) {
+        console.error("Error loading movies:", error);
+      }
+    };
+    loadMovies();
+  }, []);
+
   const nextNowShowing = () => {
-    setNowShowingIndex((prev) => (prev + 1) % nowShowingMovies.length)
+    if (nowShowingMovies.length > 0) {
+      setNowShowingIndex((prev) => (prev + 1) % nowShowingMovies.length)
+    }
   }
 
   const prevNowShowing = () => {
-    setNowShowingIndex((prev) => (prev - 1 + nowShowingMovies.length) % nowShowingMovies.length)
+    if (nowShowingMovies.length > 0) {
+      setNowShowingIndex((prev) => (prev - 1 + nowShowingMovies.length) % nowShowingMovies.length)
+    }
   }
 
   const nextUpcoming = () => {
-    setUpcomingIndex((prev) => (prev + 1) % upcomingMovies.length)
+    if (upcomingMovies.length > 0) {
+      setUpcomingIndex((prev) => (prev + 1) % upcomingMovies.length)
+    }
   }
 
   const prevUpcoming = () => {
-    setUpcomingIndex((prev) => (prev - 1 + upcomingMovies.length) % upcomingMovies.length)
+    if (upcomingMovies.length > 0) {
+      setUpcomingIndex((prev) => (prev - 1 + upcomingMovies.length) % upcomingMovies.length)
+    }
   }
 
   const openTrailer = (trailerUrl: string) => {
@@ -202,66 +146,72 @@ export default function MoviesPage() {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-[#2C3930] mb-12 text-center">Now Showing</h2>
 
-          {/* Mobile Layout - Full width with margins and touch support */}
-          <div className="lg:hidden">
-            <div className="px-4">
-              <div
-                ref={nowShowingContainerRef}
-                className="group cursor-pointer"
-                onClick={() => handleCardClick(`now-${nowShowingMovies[nowShowingIndex].id}`)}
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={() => onTouchEnd("nowShowing")}
-              >
-                <div className="relative bg-[#3F4F44] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500">
-                  <div className="relative">
-                    {/* Movie Poster */}
-                    <Image
-                      src={nowShowingMovies[nowShowingIndex].poster || "/placeholder.svg"}
-                      alt={nowShowingMovies[nowShowingIndex].title}
-                      width={400}
-                      height={600}
-                      className={`w-full h-96 object-cover transition-all duration-500 ${
-                        clickedCards.has(`now-${nowShowingMovies[nowShowingIndex].id}`) ? "blur-sm" : ""
-                      }`}
-                    />
+          {nowShowingMovies.length === 0 ? (
+            <div className="text-center text-[#3F4F44] py-16">
+              <p className="text-xl">No movies currently showing. Check back soon!</p>
+            </div>
+          ) : (
+            <>
+              {/* Mobile Layout - Full width with margins and touch support */}
+              <div className="lg:hidden">
+                <div className="max-w-sm mx-auto">
+                  <div
+                    ref={nowShowingContainerRef}
+                    className="group cursor-pointer w-full"
+                    onClick={() => handleCardClick(`now-${nowShowingMovies[nowShowingIndex]?.id}`)}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={() => onTouchEnd("nowShowing")}
+                  >
+                    <div className="relative bg-[#3F4F44] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500">
+                      <div className="relative">
+                        {/* Movie Poster */}
+                        <Image
+                          src={nowShowingMovies[nowShowingIndex]?.poster || "/placeholder.svg"}
+                          alt={nowShowingMovies[nowShowingIndex]?.title || "Movie poster"}
+                          width={400}
+                          height={600}
+                          className={`w-full h-[500px] object-cover transition-all duration-500 ${
+                            clickedCards.has(`now-${nowShowingMovies[nowShowingIndex]?.id}`) ? "blur-sm" : ""
+                          }`}
+                        />
 
-                    {/* Overlay */}
-                    <div
-                      className={`absolute inset-0 bg-[#2C3930]/90 transition-opacity duration-500 flex flex-col justify-center items-center p-8 ${
-                        clickedCards.has(`now-${nowShowingMovies[nowShowingIndex].id}`) ? "opacity-100" : "opacity-0"
-                      }`}
-                    >
-                      <h3 className="text-2xl md:text-3xl font-bold text-[#DCD7C9] mb-4 text-center">
-                        {nowShowingMovies[nowShowingIndex].title}
-                      </h3>
-                      <p className="text-[#A2785C] text-lg mb-6 text-center">
-                        {nowShowingMovies[nowShowingIndex].genre} • {nowShowingMovies[nowShowingIndex].duration}
-                      </p>
-                      <div className="flex space-x-4">
-                        <Link href="/get-ticket">
-                          <Button
-                            size="lg"
-                            className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9] px-6 py-3"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                            }}
-                          >
-                            <Ticket size={20} className="mr-2" />
-                            Buy Ticket
-                          </Button>
-                        </Link>
-                        <Button
-                          size="lg"
-                          variant="outline"
-                          className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent px-6 py-3"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            openTrailer(nowShowingMovies[nowShowingIndex].trailer)
-                          }}
+                        {/* Overlay */}
+                        <div
+                          className={`absolute inset-0 bg-[#2C3930]/90 transition-opacity duration-500 flex flex-col justify-center items-center p-8 ${
+                            clickedCards.has(`now-${nowShowingMovies[nowShowingIndex]?.id}`) ? "opacity-100" : "opacity-0"
+                          }`}
                         >
-                          <Play size={20} className="mr-2" />
-                          Trailer
+                          <h3 className="text-2xl md:text-3xl font-bold text-[#DCD7C9] mb-4 text-center">
+                            {nowShowingMovies[nowShowingIndex]?.title}
+                          </h3>
+                          <p className="text-[#A2785C] text-lg mb-6 text-center">
+                            {nowShowingMovies[nowShowingIndex]?.genre} • {nowShowingMovies[nowShowingIndex]?.durationMinutes ? `${nowShowingMovies[nowShowingIndex].durationMinutes}m` : 'Duration TBA'}
+                          </p>
+                          <div className="flex space-x-4">
+                            <Link href="/get-ticket">
+                              <Button
+                                size="lg"
+                                className="bg-[#A2785C] hover:bg-[#A2785C]/80 text-[#DCD7C9] px-6 py-3"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                }}
+                              >
+                                <Ticket size={20} className="mr-2" />
+                                Buy Ticket
+                              </Button>
+                            </Link>
+                            <Button
+                              size="lg"
+                              variant="outline"
+                              className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent px-6 py-3"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openTrailer(nowShowingMovies[nowShowingIndex]?.trailer)
+                              }}
+                            >
+                              <Play size={20} className="mr-2" />
+                              Trailer
                         </Button>
                       </div>
                     </div>
@@ -286,7 +236,7 @@ export default function MoviesPage() {
 
           {/* Desktop Layout - With navigation buttons */}
           <div className="hidden lg:block">
-            <div className="relative max-w-4xl mx-auto">
+            <div className="relative max-w-2xl mx-auto">
               {/* Navigation Buttons */}
               <button
                 onClick={prevNowShowing}
@@ -309,11 +259,11 @@ export default function MoviesPage() {
                     <div className="relative">
                       {/* Movie Poster */}
                       <Image
-                        src={nowShowingMovies[nowShowingIndex].poster || "/placeholder.svg"}
-                        alt={nowShowingMovies[nowShowingIndex].title}
+                        src={nowShowingMovies[nowShowingIndex]?.poster || "/placeholder.svg"}
+                        alt={nowShowingMovies[nowShowingIndex]?.title || "Movie poster"}
                         width={400}
                         height={600}
-                        className="w-full h-96 md:h-[600px] object-cover transition-all duration-500 group-hover:blur-sm"
+                        className="w-full h-[700px] object-cover transition-all duration-500 group-hover:blur-sm"
                       />
 
                       {/* Overlay */}
@@ -370,6 +320,8 @@ export default function MoviesPage() {
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -378,27 +330,33 @@ export default function MoviesPage() {
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl md:text-4xl font-bold text-[#2C3930] mb-12 text-center">Coming Soon</h2>
 
-          {/* Mobile Layout - Full width with margins and touch support */}
-          <div className="lg:hidden">
-            <div className="px-4">
-              <div
-                ref={upcomingContainerRef}
-                className="group cursor-pointer"
-                onClick={() => handleCardClick(`upcoming-${upcomingMovies[upcomingIndex].id}`)}
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={() => onTouchEnd("upcoming")}
-              >
-                <div className="relative bg-[#3F4F44] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500">
+          {upcomingMovies.length === 0 ? (
+            <div className="text-center text-[#3F4F44] py-16">
+              <p className="text-xl">No upcoming movies scheduled. Check back soon!</p>
+            </div>
+          ) : (
+            <>
+              {/* Mobile Layout - Full width with margins and touch support */}
+              <div className="lg:hidden">
+                <div className="max-w-sm mx-auto">
+                  <div
+                    ref={upcomingContainerRef}
+                    className="group cursor-pointer w-full"
+                    onClick={() => handleCardClick(`upcoming-${upcomingMovies[upcomingIndex]?.id}`)}
+                    onTouchStart={onTouchStart}
+                    onTouchMove={onTouchMove}
+                    onTouchEnd={() => onTouchEnd("upcoming")}
+                  >
+                    <div className="relative bg-[#3F4F44] rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-500">
                   <div className="relative">
                     {/* Movie Poster */}
                     <Image
-                      src={upcomingMovies[upcomingIndex].poster || "/placeholder.svg"}
-                      alt={upcomingMovies[upcomingIndex].title}
+                      src={upcomingMovies[upcomingIndex]?.poster || "/placeholder.svg"}
+                      alt={upcomingMovies[upcomingIndex]?.title || "Movie poster"}
                       width={400}
                       height={600}
-                      className={`w-full h-96 object-cover transition-all duration-500 ${
-                        clickedCards.has(`upcoming-${upcomingMovies[upcomingIndex].id}`) ? "blur-sm" : ""
+                      className={`w-full h-[500px] object-cover transition-all duration-500 ${
+                        clickedCards.has(`upcoming-${upcomingMovies[upcomingIndex]?.id}`) ? "blur-sm" : ""
                       }`}
                     />
 
@@ -410,15 +368,15 @@ export default function MoviesPage() {
                     {/* Overlay */}
                     <div
                       className={`absolute inset-0 bg-[#2C3930]/90 transition-opacity duration-500 flex flex-col justify-center items-center p-8 ${
-                        clickedCards.has(`upcoming-${upcomingMovies[upcomingIndex].id}`) ? "opacity-100" : "opacity-0"
+                        clickedCards.has(`upcoming-${upcomingMovies[upcomingIndex]?.id}`) ? "opacity-100" : "opacity-0"
                       }`}
                     >
                       <h3 className="text-2xl md:text-3xl font-bold text-[#DCD7C9] mb-4 text-center">
-                        {upcomingMovies[upcomingIndex].title}
+                        {upcomingMovies[upcomingIndex]?.title}
                       </h3>
-                      <p className="text-[#A2785C] text-lg mb-2 text-center">{upcomingMovies[upcomingIndex].genre}</p>
+                      <p className="text-[#A2785C] text-lg mb-2 text-center">{upcomingMovies[upcomingIndex]?.genre}</p>
                       <p className="text-[#DCD7C9] text-base mb-6 text-center">
-                        Release: {upcomingMovies[upcomingIndex].releaseDate}
+                        Coming Soon
                       </p>
                       <div className="flex space-x-4">
                         <Button
@@ -438,7 +396,7 @@ export default function MoviesPage() {
                           className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent px-6 py-3"
                           onClick={(e) => {
                             e.stopPropagation()
-                            openTrailer(upcomingMovies[upcomingIndex].trailer)
+                            openTrailer(upcomingMovies[upcomingIndex]?.trailer)
                           }}
                         >
                           <Play size={20} className="mr-2" />
@@ -467,7 +425,7 @@ export default function MoviesPage() {
 
           {/* Desktop Layout - With navigation buttons */}
           <div className="hidden lg:block">
-            <div className="relative max-w-4xl mx-auto">
+            <div className="relative max-w-2xl mx-auto">
               {/* Navigation Buttons */}
               <button
                 onClick={prevUpcoming}
@@ -490,11 +448,11 @@ export default function MoviesPage() {
                     <div className="relative">
                       {/* Movie Poster */}
                       <Image
-                        src={upcomingMovies[upcomingIndex].poster || "/placeholder.svg"}
-                        alt={upcomingMovies[upcomingIndex].title}
+                        src={upcomingMovies[upcomingIndex]?.poster || "/placeholder.svg"}
+                        alt={upcomingMovies[upcomingIndex]?.title || "Movie poster"}
                         width={400}
                         height={600}
-                        className="w-full h-96 md:h-[600px] object-cover transition-all duration-500 group-hover:blur-sm"
+                        className="w-full h-[700px] object-cover transition-all duration-500 group-hover:blur-sm"
                       />
 
                       {/* Coming Soon Badge */}
@@ -505,13 +463,13 @@ export default function MoviesPage() {
                       {/* Overlay */}
                       <div className="absolute inset-0 bg-[#2C3930]/90 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-center items-center p-8">
                         <h3 className="text-3xl md:text-4xl font-bold text-[#DCD7C9] mb-4 text-center">
-                          {upcomingMovies[upcomingIndex].title}
+                          {upcomingMovies[upcomingIndex]?.title}
                         </h3>
                         <p className="text-[#A2785C] text-lg md:text-xl mb-2 text-center">
-                          {upcomingMovies[upcomingIndex].genre}
+                          {upcomingMovies[upcomingIndex]?.genre}
                         </p>
                         <p className="text-[#DCD7C9] text-base md:text-lg mb-6 text-center">
-                          Release: {upcomingMovies[upcomingIndex].releaseDate}
+                          Coming Soon
                         </p>
                         <div className="flex space-x-4">
                           <Button
@@ -531,7 +489,7 @@ export default function MoviesPage() {
                             className="border-[#DCD7C9] text-[#DCD7C9] hover:bg-[#DCD7C9] hover:text-[#2C3930] bg-transparent px-6 py-3"
                             onClick={(e) => {
                               e.stopPropagation()
-                              openTrailer(upcomingMovies[upcomingIndex].trailer)
+                              openTrailer(upcomingMovies[upcomingIndex]?.trailer)
                             }}
                           >
                             <Play size={20} className="mr-2" />
@@ -558,6 +516,8 @@ export default function MoviesPage() {
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
       </section>
 

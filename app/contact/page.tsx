@@ -100,7 +100,7 @@ export default function ContactPage() {
             <div className="bg-white rounded-2xl p-4 md:p-8 shadow-xl">
               <div className="mb-6">
                 <h2 className="text-2xl font-bold text-[#2C3930] mb-2">Send us a Message</h2>
-                <p className="text-[#3F4F44]">Fill out the form below and we'll get back to you within 24 hours.</p>
+                <p className="text-[#3F4F44]">Fill out the form below and we'll get back to you within short time.</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">

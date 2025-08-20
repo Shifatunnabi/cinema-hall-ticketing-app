@@ -8,95 +8,21 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import BuyTicketButton from "@/components/buy-ticket-button"
 
-const featuredNews = {
-  id: 1,
-  title: "Ananda Cinema Hall Unveils State-of-the-Art IMAX Experience",
-  excerpt:
-    "Get ready for an unprecedented cinematic journey as we introduce our brand new IMAX theater with cutting-edge technology, immersive sound systems, and crystal-clear visuals that will transport you directly into the heart of every story.",
-  content: "Experience movies like never before with our revolutionary IMAX installation...",
-  image: "/placeholder.svg?height=400&width=800",
-  author: "Cinema Management",
-  date: "July 28, 2025",
-  readTime: "5 min read",
-  category: "Cinema Updates",
-  views: 1250,
-  featured: true,
+interface NewsItem {
+  _id: string;
+  title: string;
+  description: string;
+  image: string;
+  link?: string;
+  featured: boolean;
+  isActive: boolean;
+  author?: string;
+  category?: string;
+  views?: number;
+  readTime?: string;
+  createdAt: string;
+  updatedAt: string;
 }
-
-const newsItems = [
-  {
-    id: 2,
-    title: "Exclusive Midnight Premieres Coming This August",
-    excerpt:
-      "Join us for special midnight screenings of the most anticipated blockbusters with exclusive merchandise and refreshments.",
-    image: "/placeholder.svg?height=200&width=300",
-    author: "Events Team",
-    date: "July 26, 2025",
-    readTime: "3 min read",
-    category: "Events",
-    views: 890,
-  },
-  {
-    id: 3,
-    title: "Student Discount Program: 25% Off All Tickets",
-    excerpt:
-      "Students can now enjoy significant savings on movie tickets by presenting their valid student ID cards at the box office.",
-    image: "/placeholder.svg?height=200&width=300",
-    author: "Marketing Team",
-    date: "July 24, 2025",
-    readTime: "2 min read",
-    category: "Offers",
-    views: 1456,
-  },
-  {
-    id: 4,
-    title: "Behind the Scenes: Our Projection Technology Upgrade",
-    excerpt:
-      "Discover how our latest 4K laser projection systems deliver unparalleled image quality and color accuracy.",
-    image: "/placeholder.svg?height=200&width=300",
-    author: "Technical Team",
-    date: "July 22, 2025",
-    readTime: "4 min read",
-    category: "Technology",
-    views: 654,
-  },
-  {
-    id: 5,
-    title: "Local Film Festival Partnership Announced",
-    excerpt:
-      "Ananda Cinema Hall proudly partners with the Dhaka International Film Festival to showcase independent cinema.",
-    image: "/placeholder.svg?height=200&width=300",
-    author: "Partnership Team",
-    date: "July 20, 2025",
-    readTime: "3 min read",
-    category: "Partnerships",
-    views: 723,
-  },
-  {
-    id: 6,
-    title: "New Concession Menu: Gourmet Snacks & Beverages",
-    excerpt:
-      "Elevate your movie experience with our expanded menu featuring artisanal popcorn, craft sodas, and local delicacies.",
-    image: "/placeholder.svg?height=200&width=300",
-    author: "Food & Beverage",
-    date: "July 18, 2025",
-    readTime: "2 min read",
-    category: "Food & Beverage",
-    views: 987,
-  },
-  {
-    id: 7,
-    title: "Accessibility Improvements: Making Cinema for Everyone",
-    excerpt:
-      "Learn about our recent accessibility enhancements including wheelchair access, audio descriptions, and sensory-friendly screenings.",
-    image: "/placeholder.svg?height=200&width=300",
-    author: "Accessibility Team",
-    date: "July 16, 2025",
-    readTime: "4 min read",
-    category: "Accessibility",
-    views: 432,
-  },
-]
 
 const categories = [
   "All",

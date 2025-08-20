@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import AdminLayout from "@/components/admin-layout"
+import { useAdminAuth } from "@/hooks/use-admin-auth"
 
 // Mock news data
 const mockNews = [
@@ -50,6 +51,7 @@ const mockNews = [
 ]
 
 export default function NewsManagement() {
+  const { authenticated, loading: authLoading, redirectToLogin } = useAdminAuth();
   const router = useRouter()
   const [news, setNews] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,18 +66,31 @@ export default function NewsManagement() {
     featured: false,
   })
 
+  // Handle authentication
   useEffect(() => {
-    const checkAuth = () => {
-      const adminAuth = localStorage.getItem("adminAuth")
-      if (adminAuth !== "authenticated") {
-        router.push("/admin/login")
-        return
-      }
+    if (!authLoading && !authenticated) {
+      redirectToLogin();
+    }
+  }, [authLoading, authenticated, redirectToLogin]);
+
+  useEffect(() => {
+    if (authenticated) {
       fetchNews()
     }
+  }, [authenticated])
 
-    checkAuth()
-  }, [router])
+  // Show loading or redirect if not authenticated
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#DCD7C9] flex items-center justify-center">
+        <div className="text-[#2C3930]">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!authenticated) {
+    return null; // Will redirect
+  }
 
   const fetchNews = async () => {
     try {
