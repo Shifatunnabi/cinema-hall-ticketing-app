@@ -3,9 +3,9 @@ import { ObjectId } from "mongodb";
 import { getCollection } from "@/lib/db";
 import type { Booking } from "@/lib/models";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const bookings = await getCollection<Booking>("bookings");
     const doc = await bookings.findOne({ _id: new ObjectId(id) } as any, { projection: { bkash: 0 } });
     if (!doc) return NextResponse.json({ error: "Not found" }, { status: 404 });

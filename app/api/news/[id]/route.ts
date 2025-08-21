@@ -6,10 +6,10 @@ import { ObjectId } from "mongodb";
 // PUT /api/news/[id] - Update news
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { title, description, image, link, featured, isActive } = body;
 
@@ -61,10 +61,10 @@ export async function PUT(
 // DELETE /api/news/[id] - Delete news (soft delete by setting isActive to false)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     if (!ObjectId.isValid(id)) {
       return NextResponse.json(
