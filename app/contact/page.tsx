@@ -51,37 +51,37 @@ export default function ContactPage() {
     {
       icon: Phone,
       title: "Phone",
-      details: ["+880 1234-567890", "+880 9876-543210"],
+      details: ["+880 1515 289572"],
       description: "Call us for immediate assistance",
     },
     {
       icon: Mail,
       title: "Email",
-      details: ["info@anandacinema.com", "booking@anandacinema.com"],
+      details: ["info@anandacinema.com"],
       description: "Send us your queries anytime",
     },
     {
       icon: MapPin,
       title: "Address",
-      details: ["123 Cinema Street", "Entertainment District, Dhaka 1000"],
+      details: ["83, West Tejturi Bazar, Farmgate, Dhaka-1215"],
       description: "Visit us at our location",
     },
     {
       icon: Clock,
       title: "Operating Hours",
-      details: ["Daily: 10:00 AM - 11:00 PM", "Box Office: 9:30 AM - 10:30 PM"],
+      details: ["Daily: 11:00 AM - 10:00 PM", ],
       description: "We're here to serve you",
     },
   ]
 
-  const inquiryTypes = [
-    { value: "general", label: "General Inquiry" },
-    { value: "booking", label: "Booking Support" },
-    { value: "technical", label: "Technical Issues" },
-    { value: "feedback", label: "Feedback & Suggestions" },
-    { value: "partnership", label: "Business Partnership" },
-    { value: "media", label: "Media & Press" },
-  ]
+  // const inquiryTypes = [
+  //   { value: "general", label: "General Inquiry" },
+  //   { value: "booking", label: "Booking Support" },
+  //   { value: "technical", label: "Technical Issues" },
+  //   { value: "feedback", label: "Feedback & Suggestions" },
+  //   { value: "partnership", label: "Business Partnership" },
+  //   { value: "media", label: "Media & Press" },
+  // ]
 
   return (
     <div className="min-h-screen bg-[#DCD7C9]">
@@ -141,7 +141,7 @@ export default function ContactPage() {
                   />
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-[#2C3930] font-medium mb-2">Inquiry Type</label>
                   <select
                     name="inquiryType"
@@ -155,7 +155,7 @@ export default function ContactPage() {
                       </option>
                     ))}
                   </select>
-                </div>
+                </div> */}
 
                 <div>
                   <label className="block text-[#2C3930] font-medium mb-2">Subject *</label>
